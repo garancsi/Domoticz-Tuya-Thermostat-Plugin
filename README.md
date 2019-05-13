@@ -1,10 +1,7 @@
-# Domoticz-Tuya-SmartPlug-Plugin
+# Domoticz-Tuya-Thermostat-Plugin
 
-A Domoticz plugin to manage Tuya Smart Plug (single and multi socket device)
+A Domoticz plugin to manage Tuya based thermostat devices
 
-## ONLY TESTED FOR Raspberry Pi
-
-With Python version 3.5 & Domoticz version 4.9700 (stable)
 ## Prerequisites
 
 This plugin is based on the pytuya Python library. For the installation of this library,
@@ -23,14 +20,14 @@ Assuming that domoticz directory is installed in your home directory.
 
 ```bash
 cd ~/domoticz/plugins
-git clone https://github.com/tixi/Domoticz-Tuya-SmartPlug-Plugin
-cd Domoticz-Tuya-SmartPlug-Plugin
+git clone https://github.com/tixi/Domoticz-Tuya-Thermostat-Plugin
+cd Domoticz-Tuya-Thermostat-Plugin
 git clone https://github.com/clach04/python-tuya.git
-ln -s ~/domoticz/plugins/Domoticz-Tuya-SmartPlug-Plugin/python-tuya/pytuya pytuya
+ln -s ~/domoticz/plugins/Domoticz-Tuya-Thermostat-Plugin/python-tuya/pytuya pytuya
 # restart domoticz:
 sudo /etc/init.d/domoticz.sh restart
 ```
-In the web UI, navigate to the Hardware page. In the hardware dropdown there will be an entry called "Tuya SmartPlug".
+In the web UI, navigate to the Hardware page. In the hardware dropdown there will be an entry called "Tuya SmartThermostat".
 
 ## Known issues
 
@@ -38,7 +35,7 @@ In the web UI, navigate to the Hardware page. In the hardware dropdown there wil
 
 Domoticz may not have the path to the pycrypto library in its python environment.
 In this case you will observe something starting like that in the log:
-* failed to load 'plugin.py', Python Path used was 
+* failed to load 'plugin.py', Python Path used was
 * Module Import failed, exception: 'ImportError'
 
 To find where pycrypto is installed, in a shell:
@@ -47,10 +44,10 @@ pip3 show pycrypto
 ```
 The Crypto directory should be present in the directory indicated with Location.
 
-when you have it, just add a symbolic link to it in Domoticz-Tuya-SmartPlug-Plugin directory with ```ln -s```.
+when you have it, just add a symbolic link to it in Domoticz-Tuya-Thermostat-Plugin directory with ```ln -s```.
 Example:
 ```bash
-cd ~/domoticz/plugins/Domoticz-Tuya-SmartPlug-Plugin
+cd ~/domoticz/plugins/Domoticz-Tuya-Thermostat-Plugin
 ln -s /home/pi/.local/lib/python3.5/site-packages/Crypto Crypto
 ```
 
@@ -60,11 +57,11 @@ The tuya app must be close. This limitation is due to the tuya device itself tha
 
 3/ Alternative crypto libraries
 
-PyCryptodome or pyaes can be used instead of pycrypto. 
+PyCryptodome or pyaes can be used instead of pycrypto.
 
 ## Updating
 
-Like other plugins, in the Domoticz-Tuya-SmartPlug-Plugin directory:
+Like other plugins, in the Domoticz-Tuya-Thermostat-Plugin directory:
 ```bash
 git pull
 sudo /etc/init.d/domoticz.sh restart
@@ -74,19 +71,10 @@ sudo /etc/init.d/domoticz.sh restart
 
 | Parameter | Value |
 | :--- | :--- |
-| **IP address** | IP of the Smart Plug eg. 192.168.1.231 |
-| **DevID** | devID of the Smart Plug |
-| **Local Key** | Local Key of the Smart Plug |
-| **DPS** |	1 for single socket device and a list of dps separated by ';' for multisocket device eg. 1;2;3;7
-| **DPS group** | None for single socket device and a list of list of dps separated by ':' for multisocket device eg. 1;2 : 3;7
-| **DPS always ON** | None for single socket device and a list of dps separated by ; for multisocket device eg. 1;2
+| **IP address** | IP of the Smart Thermostat eg. 192.168.1.231 |
+| **DevID** | devID of the Smart Thermostat |
+| **Local Key** | Local Key of the Smart Thermostat |
 | **Debug** | default is 0 |
-
-**DPS** should only includes values that correspond to plug's dps id. Be careful some devices also have timers in the dps state.
-
-**DPS group** can be used to group multiple sockets in one Domoticz switch.
-
-**DPS always ON** can be used to force some sockets to be always on (usb for instance).
 
 Helper scripts get_dps.py turnON.py and turnOFF.py can help:
 * to determine the dps list
@@ -94,7 +82,7 @@ Helper scripts get_dps.py turnON.py and turnOFF.py can help:
 
 ## DevID & Local Key Extraction
 
-Recommanded method:
+Recommended method:
 [`https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md`](https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md)
 
 All the information can be found here:
@@ -104,3 +92,7 @@ All the information can be found here:
 
 * Special thanks for all the hard work of [clach04](https://github.com/clach04), [codetheweb](https://github.com/codetheweb/) and all the other contributers on [python-tuya](https://github.com/clach04/python-tuya) and [tuyapi](https://github.com/codetheweb/tuyapi) who have made communicating to Tuya devices possible with open source code.
 * Domoticz team
+
+## References
+
+* Details helping to decode thermostat values [https://www.domoticz.com/forum/viewtopic.php?t=25965](https://www.domoticz.com/forum/viewtopic.php?t=25965)
