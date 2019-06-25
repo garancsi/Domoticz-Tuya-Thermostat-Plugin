@@ -84,6 +84,7 @@ class Plug:
     def __init__(self,unit):
         self.__dps_id   = unit        # dps id
         self.__command  = None        # command ('On'/'Off'/None)
+        self.__setpoint = None
         self.__alwaysON = False        # True if the socket should be always ON, False otherwise
         return
 
@@ -132,6 +133,16 @@ class Plug:
             self.__command = 'On'
         else:
             self.__command = cmd
+
+    #######################################################################
+    #
+    # set_command function
+    #         set the command for the next request
+    #
+    #######################################################################
+    def set_setpoint(self,setpoint):
+        self.__setpoint = setpoint
+
 
     #######################################################################
     #
@@ -346,9 +357,9 @@ class BasePlugin:
 
                 if(val <= max_dps): #single socket dps
                     # Image #15 - heating, use <domo>/json.htm?type=custom_light_icons to get ID
-                    Domoticz.Device(Name="Thermostat Control #" + str(val), Unit=val, Image=15, TypeName="Switch").Create()
+                    Domoticz.Device(Name="Thermostat Control #" + str(val), Unit=val, Image=15, TypeName="Switch", Used=1).Create()
                     Domoticz.Log("Tuya Thermostat Control #" + str(val) +" created.")
-                    Domoticz.Device(Name="Thermostat #" + str(val), Unit=(256-val), Type=242, Subtype=1).Create()
+                    Domoticz.Device(Name="Thermostat #" + str(val), Unit=(256-val), Type=242, Subtype=1, Used=1).Create()
                     Domoticz.Log("Tuya Thermostat #" + str(val) +" created.")
 
                 else: #group: selector switch
@@ -441,12 +452,12 @@ class BasePlugin:
         if (Command=="Set Level"):
             # thermostat setpoint control
             for val in self.__unit2dps_id_list[Unit]:
-                self.__plugs[val].set_command("Level", Level)
+                self.__plugs[val].set_setpoint(Level)
 
         elif (Command in self.__VALID_CMD):
             # thermostat on / off
             for val in self.__unit2dps_id_list[Unit]:
-                self.__plugs[val].set_command("State", Command)
+                self.__plugs[val].set_command(Command)
 
         else:
             Domoticz.Error("Undefined command: " + Command)
