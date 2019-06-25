@@ -451,7 +451,7 @@ class BasePlugin:
 
         if (Command=="Set Level"):
             # thermostat setpoint control
-            for val in self.__unit2dps_id_list[Unit]:
+            for val in self.__unit2dps_id_list[(Unit-254)]:
                 self.__plugs[val].set_setpoint(Level)
 
         elif (Command in self.__VALID_CMD):
