@@ -347,7 +347,7 @@ class BasePlugin:
                 if(val <= max_dps): #single socket dps
                     Domoticz.Device(Name="Thermostat Control #" + str(val), Unit=val, TypeName="Switch").Create()
                     Domoticz.Log("Tuya Thermostat Control #" + str(val) +" created.")
-                    Domoticz.Device(Name="Thermostat #" + str(val), Unit=(257-val), Type=242, Subtype=1).Create()
+                    Domoticz.Device(Name="Thermostat #" + str(val), Unit=(256-val), Type=242, Subtype=1).Create()
                     Domoticz.Log("Tuya Thermostat #" + str(val) +" created.")
 
                 else: #group: selector switch
