@@ -104,6 +104,7 @@ class Plug:
 
         if(state):
             UpdateDevice(self.__dps_id, 1, "On")
+
             if(self.__command == 'Off'):
                 return True
             else:
@@ -120,7 +121,24 @@ class Plug:
             else:
                 self.__command = None
 
+        UpdateDevice((256 - self.__dps_id), 1, str(self.__setpoint))
+
         return False
+
+    #######################################################################
+    # update_setpoint function
+    #        update the domoticz device
+    #
+    #######################################################################
+    def update_setpoint(self,state): #state: degrees in x2 whole numbers
+        current_temp = round(state/2, 1)
+        if(self.__setpoint == current_temp):
+            self.__setpoint = None
+
+        UpdateDevice((256 - self.__dps_id), 1, str(current_temp))
+
+        return False
+
 
     #######################################################################
     #
@@ -162,13 +180,17 @@ class Plug:
     #######################################################################
     def put_payload(self,dict_payload):
 
-        if(self.__command == None):
+        if (self.__command == None):
             return
 
-        if(self.__command =="On"):
+        if (self.__command =="On"):
             dict_payload[str(self.__dps_id)] = True
         else:
             dict_payload[str(self.__dps_id)] = False
+
+        if (self.__setpoint != None):
+            dict_payload["2"] = math.ceil(self.__setpoint*2)
+
 
 ########################################################################################
 
@@ -446,7 +468,7 @@ class BasePlugin:
     #
     #######################################################################
     def onCommand(self, Unit, Command, Level, Hue):
-        Domoticz.Debug("onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + " Level: " + str(Level))
+        Domoticz.Debug("onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + "' Level: " + str(Level))
 
 
         if (Command=="Set Level"):
