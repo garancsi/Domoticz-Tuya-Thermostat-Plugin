@@ -345,7 +345,8 @@ class BasePlugin:
             for val in self.__unit2dps_id_list:
 
                 if(val <= max_dps): #single socket dps
-                    Domoticz.Device(Name="Thermostat Control #" + str(val), Unit=val, TypeName="Switch").Create()
+                    # Image #15 - heating, use <domo>/json.htm?type=custom_light_icons to get ID
+                    Domoticz.Device(Name="Thermostat Control #" + str(val), Unit=val, Image=15, TypeName="Switch").Create()
                     Domoticz.Log("Tuya Thermostat Control #" + str(val) +" created.")
                     Domoticz.Device(Name="Thermostat #" + str(val), Unit=(256-val), Type=242, Subtype=1).Create()
                     Domoticz.Log("Tuya Thermostat #" + str(val) +" created.")
@@ -436,21 +437,20 @@ class BasePlugin:
     def onCommand(self, Unit, Command, Level, Hue):
         Domoticz.Debug("onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + " Level: " + str(Level))
 
-        if(Command=="Set Level"): #group (selector switch): convert level to command (0 <=> 'Off' ; 10 <=> 'On')
-            if(Level==0):
-                Command = 'Off'
-            elif(Level==10):
-                Command = 'On'
-            else:
-                Domoticz.Error("Undefined Level: " + str(Level))
-                return
 
-        if(Command not in self.__VALID_CMD):
+        if (Command=="Set Level"):
+            # thermostat setpoint control
+            for val in self.__unit2dps_id_list[Unit]:
+                self.__plugs[val].set_command("Level", Level)
+
+        elif (Command in self.__VALID_CMD):
+            # thermostat on / off
+            for val in self.__unit2dps_id_list[Unit]:
+                self.__plugs[val].set_command("State", Command)
+
+        else:
             Domoticz.Error("Undefined command: " + Command)
             return
-
-        for val in self.__unit2dps_id_list[Unit]:
-            self.__plugs[val].set_command(Command)
 
         self.__command_to_execute()
 
