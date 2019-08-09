@@ -27,14 +27,11 @@
 
 
 """
-<plugin key="tixi_tuya_thermostat_plugin" name="Tuya Thermostat" author="tixi" version="3.0.0" externallink=" https://github.com/tixi/Domoticz-Tuya-Thermostat-Plugin">
+<plugin key="iasmanis_tuya_thermostat_plugin" name="Tuya Thermostat" author="iasmanis" version="3.0.0" externallink=" https://github.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin">
     <params>
         <param field="Address" label="IP address" width="200px" required="true"/>
         <param field="Mode1" label="DevID" width="200px" required="true"/>
         <param field="Mode2" label="Local Key" width="200px" required="true"/>
-        <param field="Mode3" label="DPS" width="200px" required="true" default="1"/>
-        <param field="Mode4" label="DPS group" width="200px" required="true" default="None"/>
-        <param field="Mode5" label="DPS always ON" width="200px" required="true" default="None"/>
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="0"   value="0" default="true"/>
