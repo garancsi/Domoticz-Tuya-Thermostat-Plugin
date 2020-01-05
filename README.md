@@ -20,7 +20,7 @@ Assuming that domoticz directory is installed in your home directory.
 
 ```bash
 cd ~/domoticz/plugins
-git clone https://github.com/tixi/Domoticz-Tuya-Thermostat-Plugin
+git clone https://github.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin
 cd Domoticz-Tuya-Thermostat-Plugin
 git clone https://github.com/clach04/python-tuya.git
 ln -s ~/domoticz/plugins/Domoticz-Tuya-Thermostat-Plugin/python-tuya/pytuya pytuya
