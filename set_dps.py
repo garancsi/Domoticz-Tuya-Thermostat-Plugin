@@ -34,7 +34,7 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-if(len(sys.argv) != 5):
+if(len(sys.argv) != 6):
     print("usage: " + sys.argv[0] +
           " <IP> <DevID> <Local key> <DPS key> <DPS value>")
     exit(1)
