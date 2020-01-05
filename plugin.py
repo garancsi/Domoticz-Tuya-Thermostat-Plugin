@@ -34,15 +34,8 @@
         <param field="Mode2" label="Local Key" width="200px" required="true"/>
         <param field="Mode6" label="Debug" width="75px">
             <options>
-                <option label="0"   value="0" default="true"/>
-                <option label="1"   value="1"/>
-                <option label="2"   value="2"/>
-                <option label="4"   value="4"/>
-                <option label="8"   value="8"/>
-                <option label="16"  value="16"/>
-                <option label="32"  value="32"/>
-                <option label="64"  value="64"/>
-                <option label="128" value="128"/>
+                <option label="False"   value="0" default="true"/>
+                <option label="True"   value="1"/>
             </options>
         </param>
     </params>
