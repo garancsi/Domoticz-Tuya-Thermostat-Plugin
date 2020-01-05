@@ -31,12 +31,17 @@ import sys
 import pytuya
 import socket  # needed for socket.timeout exception
 import logging
+from decimal import Decimal
 
 logging.basicConfig(level=logging.DEBUG)
 
-if(len(sys.argv) != 6):
+if(len(sys.argv) != 7):
     print("usage: " + sys.argv[0] +
-          " <IP> <DevID> <Local key> <DPS key> <DPS value>")
+          " <IP> <DevID> <Local key> <DPS key> <DPS value> <DPS type>")
+    print("    <DPS type>: " +
+          "       bool - a boolean value" +
+          "       number - a numerical value value" +
+          "       string - a string value value")
     exit(1)
 
 ip = sys.argv[1]
@@ -44,12 +49,20 @@ devid = sys.argv[2]
 localkey = sys.argv[3]
 dps_key = sys.argv[4]
 dps_value = sys.argv[5]
+dps_type = sys.argv[6]
 
 device = pytuya.OutletDevice(devid, ip, localkey)
 
 try:
-    # Check ir type is required
-    payload = device.generate_payload('set', {str(dps_key): dps_value})
+
+    formatted_dps_value = str(dps_value)
+    if (dps_type == "bool"):
+        formatted_dps_value = (dps_value.lower() == "true")
+    if (dps_type == "number"):
+        formatted_dps_value = Decimal(dps_value)
+
+    payload = device.generate_payload(
+        'set', {str(dps_key): formatted_dps_value})
     device._send_receive(payload)
 
 except (ConnectionResetError, socket.timeout, OSError) as e:
