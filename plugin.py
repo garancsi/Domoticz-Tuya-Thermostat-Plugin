@@ -361,34 +361,44 @@ class BasePlugin:
 
             ModeOptions = {"LevelActions": "|",
                            "LevelNames": "Manual|Schedule",
-                           "LevelOffHidden": "false",
+                           "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Mode",
                             Unit=self.__mode_device,
                             TypeName="Selector Switch",
+                            Switchtype=18,
+                            Image=15,
                             Options=ModeOptions).Create()
 
             LockOptions = {"LevelActions": "|",
-                           "LevelNames": "Manual|Schedule",
-                           "LevelOffHidden": "false",
+                           "LevelNames": "Locked|Unlocked",
+                           "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Lock",
                             Unit=self.__lock_device,
                             TypeName="Selector Switch",
+                            Switchtype=18,
+                            Image=15,
                             Options=LockOptions).Create()
 
             EcoOptions = {"LevelActions": "|",
                           "LevelNames": "Eco|Normal",
-                          "LevelOffHidden": "false",
+                          "LevelOffHidden": "true",
                           "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Eco",
                             Unit=self.__eco_device,
                             TypeName="Selector Switch",
+                            Switchtype=18,
+                            Image=15,
                             Options=EcoOptions).Create()
 
+
+            Domoticz.Device(Name="Source", Unit=self.UNIT_MODE_CONTROL, TypeName="Selector Switch", Switchtype=18,
+                            Image=7,
+                            Options=Options).Create()
         # create the pytuya object
         self.__device = pytuya.OutletDevice(
             self.__devID, self.__address, self.__localKey)
