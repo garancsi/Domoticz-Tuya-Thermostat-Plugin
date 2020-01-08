@@ -389,8 +389,6 @@ class BasePlugin:
                             TypeName="Selector Switch",
                             Options=EcoOptions).Create()
 
-            self.__domoticz_controls.append(DomoticzInputThermostat())
-
         # create the pytuya object
         self.__device = pytuya.OutletDevice(
             self.__devID, self.__address, self.__localKey)
