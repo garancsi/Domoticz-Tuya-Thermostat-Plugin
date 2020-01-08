@@ -227,15 +227,6 @@ class BasePlugin:
 
     #######################################################################
     #
-    # private functions definition
-    #    __extract_status
-    #    __is_encoded
-    #    __command_to_execute
-    #
-    #######################################################################
-
-    #######################################################################
-    #
     # __extract_status
     #
     # Parameter
@@ -271,28 +262,6 @@ class BasePlugin:
             return (False, result['dps'])
         except (JSONError, KeyError) as e:
             return (True, "")
-
-    #######################################################################
-    #
-    # __is_encoded
-    #
-    # Parameter
-    #    Data: a received payload from the tuya smart plug
-    #
-    # Returns
-    #    True if Data is encoded
-    #    False otherwise
-    #
-    # Remark: for debugging purpose
-    #
-    #######################################################################
-    # ~ def __is_encoded(self, Data):
-
-        # ~ tmp = Data[20:-8]  # hard coded offsets
-        # ~ if(tmp.startswith(b'3.1')):#PROTOCOL_VERSION_BYTES
-            # ~ return True
-        # ~ else:
-            # ~ return False
 
     #######################################################################
     #
@@ -338,10 +307,12 @@ class BasePlugin:
         self.__device = None  # pytuya object of the Thermostat
         self.__runAgain = self.__HB_BASE_FREQ  # heartbeat frequency
         self.__connection = None  # connection to the tuya plug
-        # domotics control ID (On/Off/Auto switch)
-        self.__control_device = None
-        self.__thermostat_device = None  # mapping between Unit and list of dps id
-        self.__domoticz_controls = None  # mapping between dps id and a plug object
+        # domotics control ID (On/Off switch)
+        self.__control_device = 1
+        self.__thermostat_device = 2
+        self.__mode_device = 3
+        self.__lock_device = 4
+        self.__eco_device = 5
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
         self.__state_machine = 0
         return
@@ -366,33 +337,59 @@ class BasePlugin:
         self.__runAgain = self.__HB_BASE_FREQ
 
         # build internal maps (__control_device and __domoticz_controls)
-        self.__control_device = 1
-        self.__thermostat_device = 2
-        self.__domoticz_controls = {}
 
-        val = 1
+        self.__domoticz_controls = {}
 
         # create domoticz devices
         if(len(Devices) == 0):
 
-            Domoticz.Device(Name="Thermostat Control #" + str(val),
-                            Unit=val, Image=15, TypeName="Switch", Used=1).Create()
-            Domoticz.Log("Tuya Thermostat Control #" +
-                         str(val) + " created.")
-            Domoticz.Device(Name="Thermostat #" + str(val),
-                            Unit=self.__thermostat_device, Type=242, Subtype=1, Used=1).Create()
-            Domoticz.Log("Tuya Thermostat #" + str(val) + " created.")
-            self.__domoticz_controls.append(DomoticzInputThermostat())
+            Domoticz.Device(Name="Thermostat Control",
+                            Unit=self.__control_device,
+                            Image=15,
+                            TypeName="Switch",
+                            Used=1).Create()
 
-            Options = {"LevelActions": "|",
-                       "LevelNames": "Off|On",
-                       "LevelOffHidden": "false",
-                       "SelectorStyle": "0"}
-            Domoticz.Device(Name="Tuya Thermostat #" + str(val), Unit=self.__control_device,
-                            TypeName="Selector Switch", Options=Options).Create()
-            Domoticz.Log("Tuya Thermostat Device #" +
-                         str(val) + " created.")
-            self.__domoticz_controls.append(DomoticzInputSwitch())
+            Domoticz.Log("Tuya Thermostat Control created.")
+
+            Domoticz.Device(Name="Thermostat Setpoint",
+                            Unit=self.__thermostat_device,
+                            Type=242,
+                            Subtype=1,
+                            Used=1).Create()
+
+            Domoticz.Log("Thermostat Setpoint created.")
+
+            ModeOptions = {"LevelActions": "|",
+                           "LevelNames": "Manual|Schedule",
+                           "LevelOffHidden": "false",
+                           "SelectorStyle": "0"}
+
+            Domoticz.Device(Name="Thermostat Mode",
+                            Unit=self.__mode_device,
+                            TypeName="Selector Switch",
+                            Options=ModeOptions).Create()
+
+            LockOptions = {"LevelActions": "|",
+                           "LevelNames": "Manual|Schedule",
+                           "LevelOffHidden": "false",
+                           "SelectorStyle": "0"}
+
+            Domoticz.Device(Name="Thermostat Lock",
+                            Unit=self.__lock_device,
+                            TypeName="Selector Switch",
+                            Options=LockOptions).Create()
+
+            EcoOptions = {"LevelActions": "|",
+                          "LevelNames": "Eco|Normal",
+                          "LevelOffHidden": "false",
+                          "SelectorStyle": "0"}
+
+            Domoticz.Device(Name="Thermostat Eco",
+                            Unit=self.__eco_device,
+                            TypeName="Selector Switch",
+                            Options=EcoOptions).Create()
+
+            self.__domoticz_controls.append(DomoticzInputThermostat())
 
         # create the pytuya object
         self.__device = pytuya.OutletDevice(
@@ -473,12 +470,13 @@ class BasePlugin:
         Domoticz.Debug("onCommand called for Unit " + str(Unit) +
                        ": Parameter '" + str(Command) + "' Level: " + str(Level))
 
-        if (Command == "Set Level"):
+        # onCommand called for Unit 2: Parameter 'Set Level' Level: 2.5
+        if (Unit == self.__thermostat_device) and (Command == "Set Level"):
             # thermostat setpoint control
             self.__domoticz_controls[self.__thermostat_device].set_setpoint(
                 Level)
 
-        elif (Command in self.__VALID_CMD):
+        elif (Unit == self.__control_device):
             # thermostat on / off
             self.__domoticz_controls[self.__control_device].set_command(
                 Command)
