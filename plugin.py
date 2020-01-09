@@ -29,13 +29,13 @@
 """
 <plugin key="iasmanis_tuya_thermostat_plugin" name="Tuya Thermostat" author="iasmanis" version="3.0.0" externallink="https://github.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin">
     <params>
-        <param field="Address" label="IP address" width="200px" required="True"/>
-        <param field="Mode1" label="DevID" width="200px" required="True"/>
-        <param field="Mode2" label="Local Key" width="200px" required="True"/>
+        <param field="Address" label="IP address" width="200px" required="true"/>
+        <param field="Mode1" label="DevID" width="200px" required="true"/>
+        <param field="Mode2" label="Local Key" width="200px" required="true"/>
         <param field="Mode6" label="Debug" width="75px">
             <options>
-                <option label="False"   value="0" default="True"/>
-                <option label="True"   value="1"/>
+                <option label="false"   value="0" default="true"/>
+                <option label="true"   value="1"/>
             </options>
         </param>
     </params>
@@ -285,7 +285,7 @@ class BasePlugin:
 
             ModeOptions = {"LevelActions": "|||",
                            "LevelNames": "Off|Manual|Schedule",
-                           "LevelOffHidden": "True",
+                           "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Mode",
@@ -297,7 +297,7 @@ class BasePlugin:
 
             LockOptions = {"LevelActions": "|||",
                            "LevelNames": "Off|Unlocked|Locked",
-                           "LevelOffHidden": "True",
+                           "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Lock",
@@ -309,7 +309,7 @@ class BasePlugin:
 
             EcoOptions = {"LevelActions": "|||",
                           "LevelNames": "Off|Normal|Eco",
-                          "LevelOffHidden": "True",
+                          "LevelOffHidden": "true",
                           "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Eco",
