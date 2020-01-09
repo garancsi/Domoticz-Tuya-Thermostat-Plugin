@@ -207,6 +207,7 @@ class BasePlugin:
 
         if(self.__connection.Connected()):
             self.__state_machine = 1
+            dict_payload = {str(dps): value}
             payload = self.__device.generate_payload('set', dict_payload)
             self.__connection.Send(payload)
 
@@ -414,8 +415,8 @@ class BasePlugin:
 
             self.__send_update('4', request_status)
         else:
-            Domoticz.Error("Undefined unit (" + Unit +
-                           ") or command: " + Command)
+            Domoticz.Error("Undefined unit (" + str(Unit) +
+                           ") or command: '" + str(Command) + "' Level: " + str(Level))
             return
 
         self.__request_status()
