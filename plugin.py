@@ -266,7 +266,7 @@ class BasePlugin:
         # create domoticz devices
         if(len(Devices) == 0):
 
-            Domoticz.Device(Name="Thermostat Control",
+            Domoticz.Device(Name="Control",
                             Unit=self.__control_device,
                             Image=15,
                             TypeName="Switch",
@@ -274,7 +274,7 @@ class BasePlugin:
 
             Domoticz.Log("Tuya Thermostat Control created.")
 
-            Domoticz.Device(Name="Thermostat Setpoint",
+            Domoticz.Device(Name="Setpoint",
                             Unit=self.__thermostat_device,
                             Image=15,
                             Type=242,
@@ -288,7 +288,7 @@ class BasePlugin:
                            "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
-            Domoticz.Device(Name="Thermostat Mode",
+            Domoticz.Device(Name="Operating Mode",
                             Unit=self.__mode_device,
                             Image=15,
                             TypeName="Selector Switch",
@@ -300,7 +300,7 @@ class BasePlugin:
                            "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
-            Domoticz.Device(Name="Thermostat Lock",
+            Domoticz.Device(Name="Key Lock",
                             Unit=self.__lock_device,
                             Image=15,
                             TypeName="Selector Switch",
@@ -312,7 +312,7 @@ class BasePlugin:
                           "LevelOffHidden": "true",
                           "SelectorStyle": "0"}
 
-            Domoticz.Device(Name="Thermostat Eco",
+            Domoticz.Device(Name="Eco Mode",
                             Unit=self.__eco_device,
                             Image=15,
                             TypeName="Selector Switch",
