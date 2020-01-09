@@ -268,7 +268,7 @@ class BasePlugin:
 
 
         if ((type(result['dps']) is dict) == False):
-            Domoticz.Error("Invalid dps block: " + jsonstr
+            Domoticz.Error("Invalid dps block: " + jsonstr)
             return
 
         try:
