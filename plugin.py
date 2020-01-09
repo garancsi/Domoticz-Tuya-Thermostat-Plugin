@@ -366,15 +366,9 @@ class BasePlugin:
 
             if(self.__state_machine == 1):  # after a set command: need to ask the status
                 self.__state_machine = 2
-                payload = self.__device.generate_payload('status')
-                # TODO active connection check (it should be because we just get a message)
-                # self.__connection.Send(payload)
-                return
 
-            # now self.__state_machine == 2
-            self.__state_machine = 0
-
-            self.__update_status(Data)
+            if(self.__state_machine == 2):
+                self.__update_status(Data)
 
     #######################################################################
     #
