@@ -4,8 +4,8 @@ A Domoticz plugin to manage Tuya based thermostat devices
 
 Tested with 16A-002HB-WiFi, 16A-002BB-WiFi.
 
-![16A-002BB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/assets/th-black.png)
-![16A-002HB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/assets/th-white.png)
+![16A-002BB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/master/assets/th-black.png)
+![16A-002HB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/master/assets/th-white.png)
 
 Got it from AliExpress [`https://www.aliexpress.com/item/32963598720.html?spm=a2g0s.9042311.0.0.27424c4dEOcJDh`](Smart Home World Store).
 
