@@ -238,6 +238,24 @@ class BasePlugin:
     #######################################################################
     def __update_status(self, Data):
 
+        start=Data.find(b'{"devId')
+
+        if(start==-1):
+            Domoticz.Error("Invalid payload received: " + Data)
+            return
+
+        result = Data[start:]
+
+
+        end=result.find(b'}}')
+
+        if(end==-1):
+            Domoticz.Error("Invalid payload received: " + Data)
+            return
+
+        end=end+2
+        result = result[:end]
+
         try:
             result = json.loads(Data)
         except (JSONError, KeyError) as e:
@@ -492,24 +510,16 @@ class BasePlugin:
                 self.__state_machine = 2
                 payload = self.__device.generate_payload('status')
                 # TODO active connection check (it should be because we just get a message)
-                self.__connection.Send(payload)
+                # self.__connection.Send(payload)
                 return
 
             # now self.__state_machine == 2
             self.__state_machine = 0
 
-            (error, state) = self.__update_status(Data)
-            if(error):
-                self.__command_to_execute()
-                return
+            self.__update_status(Data)
 
-            error = False
-            for key in self.__domoticz_controls:
-                error = error or self.__domoticz_controls[key].update_state(
-                    state[str(key)])
 
-            if(error):
-                self.__command_to_execute()
+
 
     #######################################################################
     #
