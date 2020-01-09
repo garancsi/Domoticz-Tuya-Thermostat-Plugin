@@ -29,12 +29,12 @@
 """
 <plugin key="iasmanis_tuya_thermostat_plugin" name="Tuya Thermostat" author="iasmanis" version="3.0.0" externallink="https://github.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin">
     <params>
-        <param field="Address" label="IP address" width="200px" required="true"/>
-        <param field="Mode1" label="DevID" width="200px" required="true"/>
-        <param field="Mode2" label="Local Key" width="200px" required="true"/>
+        <param field="Address" label="IP address" width="200px" required="True"/>
+        <param field="Mode1" label="DevID" width="200px" required="True"/>
+        <param field="Mode2" label="Local Key" width="200px" required="True"/>
         <param field="Mode6" label="Debug" width="75px">
             <options>
-                <option label="False"   value="0" default="true"/>
+                <option label="False"   value="0" default="True"/>
                 <option label="True"   value="1"/>
             </options>
         </param>
@@ -279,7 +279,7 @@ class BasePlugin:
 
             ModeOptions = {"LevelActions": "|||",
                            "LevelNames": "Off|Manual|Schedule",
-                           "LevelOffHidden": "true",
+                           "LevelOffHidden": "True",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Mode",
@@ -291,7 +291,7 @@ class BasePlugin:
 
             LockOptions = {"LevelActions": "|||",
                            "LevelNames": "Off|Unlocked|Locked",
-                           "LevelOffHidden": "true",
+                           "LevelOffHidden": "True",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Lock",
@@ -303,7 +303,7 @@ class BasePlugin:
 
             EcoOptions = {"LevelActions": "|||",
                           "LevelNames": "Off|Normal|Eco",
-                          "LevelOffHidden": "true",
+                          "LevelOffHidden": "True",
                           "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Eco",
@@ -391,9 +391,9 @@ class BasePlugin:
         elif (Unit == self.__control_device):
             # thermostat on / off
             if Command == 'Off':
-                request_status = false
+                request_status = False
             elif Command == 'On':
-                request_status = true
+                request_status = True
             else:
                 Domoticz.Error("Undefined command for unit " +
                                Unit + ": " + Command)
@@ -416,10 +416,10 @@ class BasePlugin:
         elif (Unit == self.__eco_device) and (Command == "Set Level"):
             if Level == 10:
                 # normal mode
-                request_status = false
+                request_status = False
             elif Level == 20:
                 # eco mode
-                request_status = true
+                request_status = True
             else:
                 Domoticz.Error("Undefined command for unit " +
                                Unit + ": " + Command)
@@ -429,10 +429,10 @@ class BasePlugin:
         elif (Unit == self.__lock_device) and (Command == "Set Level"):
             if Level == 10:
                 # unlocked
-                request_status = false
+                request_status = False
             elif Level == 20:
                 # locked
-                request_status = true
+                request_status = True
             else:
                 Domoticz.Error("Undefined command for unit " +
                                Unit + ": " + Command)
