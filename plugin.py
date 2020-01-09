@@ -286,6 +286,7 @@ class BasePlugin:
                             Unit=self.__mode_device,
                             Image=15,
                             TypeName="Selector Switch",
+                            Switchtype=18,
                             Options=ModeOptions).Create()
 
             LockOptions = {"LevelActions": "||",
@@ -297,6 +298,7 @@ class BasePlugin:
                             Unit=self.__lock_device,
                             Image=15,
                             TypeName="Selector Switch",
+                            Switchtype=18,
                             Options=LockOptions).Create()
 
             EcoOptions = {"LevelActions": "||",
@@ -308,6 +310,7 @@ class BasePlugin:
                             Unit=self.__eco_device,
                             Image=15,
                             TypeName="Selector Switch",
+                            Switchtype=18,
                             Options=EcoOptions).Create()
 
             Domoticz.Device(Name="Temperature",
