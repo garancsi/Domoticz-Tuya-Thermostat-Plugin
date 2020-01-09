@@ -58,163 +58,15 @@
 import Domoticz
 import pytuya
 import json
-
-########################################################################################
-#
-# plug object (represents a socket of the Tuya device)
-#
-########################################################################################
-
-
-class DomoticzInputBase:
-
-    #######################################################################
-    #
-    # constructor
-    #
-    #######################################################################
-
-    def __init__(self, unit):
-        self.__unit = unit
-        return
-
-    def put_payload(self, dict_payload):
-        raise NotImplementedError
-
-
-class DomoticzInputThermostat(DomoticzInputBase):
-
-    #######################################################################
-    #
-    # constructor
-    #
-    #######################################################################
-
-    def __init__(self, unit):
-        self.__setpoint = None  # value for thermostat control
-        super(DomoticzInputThermostat, self).__init__(unit)
-        return
-
-    #######################################################################
-    # update_setpoint function
-    #        update the domoticz device
-    #
-    #######################################################################
-    def update_setpoint(self, state):  # state: degrees in x2 whole numbers
-        current_temp = round(state/2, 1)
-        if(self.__setpoint == current_temp):
-            self.__setpoint = None
-
-        UpdateDevice((256 - self.__dps_id), 1, str(current_temp))
-
-        return False
-
-    #######################################################################
-    #
-    # set_setpoint function
-    #         set the setpoint for the next request
-    #
-    #######################################################################
-    def set_setpoint(self, setpoint):
-        self.__setpoint = setpoint
-
-    #######################################################################
-    #
-    # put_payload function
-    #        add to dict_payload the command to be sent to the device
-    #
-    #######################################################################
-    def put_payload(self, dict_payload):
-
-        if (self.__setpoint != None):
-            dict_payload["2"] = math.ceil(self.__setpoint*2)
-
-
-########################################################################################
-
-class DomoticzInputSwitch(DomoticzInputBase):
-
-    #######################################################################
-    #
-    # constructor
-    #
-    #######################################################################
-
-    def __init__(self, unit):
-        self.__command = None        # command ('On'/'Off'/None)
-        super(DomoticzInputSwitch, self).__init__(unit)
-        return
-
-    #######################################################################
-    # update_state function
-    #        update the domoticz device
-    #        and checks if the last command is equal to the current state
-    #
-    # parameters:
-    #        state: True <=> On ; False <=> Off
-    #
-    # returns:
-    #        True in case of an error (the state does not correspond to the command)
-    #        False otherwise
-    #######################################################################
-    def update_state(self, state):  # state: True <=> On ; False <=> Off
-
-        if(state):
-            UpdateDevice(self.__dps_id, 1, "On")
-
-            if(self.__command == 'Off'):
-                return True
-            else:
-                self.__command = None
-
-        elif(self.__alwaysON):  # if not state: need to change the state for always_on devices
-            self.__command = 'On'
-            return True
-
-        else:
-            UpdateDevice(self.__dps_id, 0, "Off")
-            if(self.__command == 'On'):
-                return True
-            else:
-                self.__command = None
-
-        return False
-
-    #######################################################################
-    #
-    # set_command function
-    #         set the command for the next request
-    #
-    #######################################################################
-    def set_command(self, cmd):
-        if(self.__alwaysON):
-            self.__command = 'On'
-        else:
-            self.__command = cmd
-
-    #######################################################################
-    #
-    # put_payload function
-    #        add to dict_payload the command to be sent to the device
-    #
-    #######################################################################
-    def put_payload(self, dict_payload):
-
-        if (self.__command != None):
-            if (self.__command == "On"):
-                dict_payload["1"] = True
-            else:
-                dict_payload["1"] = False
-
-
-########################################################################################
-
+import math
 
 ########################################################################################
 #
 # plugin object
 #
 ########################################################################################
+
+
 class BasePlugin:
 
     #######################################################################
@@ -266,7 +118,6 @@ class BasePlugin:
             Domoticz.Error("Invalid payload received for " + result['devId'])
             return
 
-
         if ((type(result['dps']) is dict) == False):
             Domoticz.Error("Invalid dps block: " + jsonstr)
             return
@@ -280,7 +131,7 @@ class BasePlugin:
             pass
 
         try:
-            current_temp=str(round(result['dps']['3']/2, 1))
+            current_temp = str(round(result['dps']['3']/2, 1))
             # TODO check which value shoud be set
             UpdateDevice(self.__thermostat_device, 0, current_temp)
         except KeyError:
@@ -312,44 +163,41 @@ class BasePlugin:
 
         # builtin sensor reading
         try:
-            current_temp=str(round(result['dps']['2']/2, 1))
+            current_temp = str(round(result['dps']['2']/2, 1))
             UpdateDevice(self.__temp_device, 0, current_temp)
         except KeyError:
             pass
 
         # External sensor present
         try:
-            current_temp=str(round(result['dps']['102']/2, 1))
+            current_temp = str(round(result['dps']['102']/2, 1))
             UpdateDevice(self.__temp_device, 0, current_temp)
         except KeyError:
             pass
 
     #######################################################################
     #
-    # __command_to_execute
+    # __send_update
     #    send a command (set or status) to the tuya device
     #
     #
     #######################################################################
-    def __command_to_execute(self):
+    def __send_update(self, dps, value):
 
-        self.__runAgain=self.__HB_BASE_FREQ
+        self.__runAgain = self.__HB_BASE_FREQ
 
         if(self.__connection.Connected()):
 
-            dict_payload={}
-
-            for key in self.__domoticz_controls:
-                self.__domoticz_controls[key].put_payload(dict_payload)
+            dict_payload = {dps: value}
 
             if(len(dict_payload) != 0):
-                self.__state_machine=1
-                # payload = self.__device.generate_payload('set', dict_payload)
-                # self.__connection.Send(payload)
+                self.__state_machine = 1
+                payload = self.__device.generate_payload('set', dict_payload)
+                self.__connection.Send(payload)
 
             else:
-                self.__state_machine=2
-                payload=self.__device.generate_payload('status')
+                self.__state_machine = 2
+                payload = self.__device.generate_payload('status')
                 self.__connection.Send(payload)
 
         else:
@@ -362,21 +210,21 @@ class BasePlugin:
     #
     #######################################################################
     def __init__(self):
-        self.__address=None  # IP address of the Thermostat
-        self.__devID=None  # devID of the Thermostat
-        self.__localKey=None  # localKey of the Thermostat
-        self.__device=None  # pytuya object of the Thermostat
-        self.__runAgain=self.__HB_BASE_FREQ  # heartbeat frequency
-        self.__connection=None  # connection to the tuya plug
+        self.__address = None  # IP address of the Thermostat
+        self.__devID = None  # devID of the Thermostat
+        self.__localKey = None  # localKey of the Thermostat
+        self.__device = None  # pytuya object of the Thermostat
+        self.__runAgain = self.__HB_BASE_FREQ  # heartbeat frequency
+        self.__connection = None  # connection to the tuya plug
         # domotics control ID (On/Off switch)
-        self.__control_device=1
-        self.__thermostat_device=2
-        self.__mode_device=3
-        self.__lock_device=4
-        self.__eco_device=5
-        self.__temp_device=6
+        self.__control_device = 1
+        self.__thermostat_device = 2
+        self.__mode_device = 3
+        self.__lock_device = 4
+        self.__eco_device = 5
+        self.__temp_device = 6
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
-        self.__state_machine=0
+        self.__state_machine = 0
         return
 
     #######################################################################
@@ -391,16 +239,16 @@ class BasePlugin:
         Domoticz.Debug("onStart called")
 
         # get parameters
-        self.__address=Parameters["Address"]
-        self.__devID=Parameters["Mode1"]
-        self.__localKey=Parameters["Mode2"]
+        self.__address = Parameters["Address"]
+        self.__devID = Parameters["Mode1"]
+        self.__localKey = Parameters["Mode2"]
 
         # set the next heartbeat
-        self.__runAgain=self.__HB_BASE_FREQ
+        self.__runAgain = self.__HB_BASE_FREQ
 
         # build internal maps (__control_device and __domoticz_controls)
 
-        self.__domoticz_controls={}
+        self.__domoticz_controls = {}
 
         # create domoticz devices
         if(len(Devices) == 0):
@@ -422,9 +270,9 @@ class BasePlugin:
 
             Domoticz.Log("Thermostat Setpoint created.")
 
-            ModeOptions={"LevelActions": "|",
+            ModeOptions = {"LevelActions": "|",
                            "LevelNames": "Manual|Schedule",
-                           "LevelOffHidden": "false",
+                           "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Mode",
@@ -433,9 +281,9 @@ class BasePlugin:
                             TypeName="Selector Switch",
                             Options=ModeOptions).Create()
 
-            LockOptions={"LevelActions": "|",
+            LockOptions = {"LevelActions": "|",
                            "LevelNames": "Manual|Schedule",
-                           "LevelOffHidden": "false",
+                           "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Lock",
@@ -444,9 +292,9 @@ class BasePlugin:
                             TypeName="Selector Switch",
                             Options=LockOptions).Create()
 
-            EcoOptions={"LevelActions": "|",
+            EcoOptions = {"LevelActions": "|",
                           "LevelNames": "Eco|Normal",
-                          "LevelOffHidden": "false",
+                          "LevelOffHidden": "true",
                           "SelectorStyle": "0"}
 
             Domoticz.Device(Name="Thermostat Eco",
@@ -462,14 +310,14 @@ class BasePlugin:
                             Used=1).Create()
 
         # create the pytuya object
-        self.__device=pytuya.OutletDevice(
+        self.__device = pytuya.OutletDevice(
             self.__devID, self.__address, self.__localKey)
 
         # state machine
-        self.__state_machine=0
+        self.__state_machine = 0
 
         # start the connection
-        self.__connection=Domoticz.Connection(
+        self.__connection = Domoticz.Connection(
             Name="Tuya", Transport="TCP/IP", Address=self.__address, Port="6668")
         self.__connection.Connect()
 
@@ -483,7 +331,7 @@ class BasePlugin:
             if (Status == 0):
                 Domoticz.Debug("Connected successfully to: " +
                                Connection.Address+":"+Connection.Port)
-                self.__command_to_execute()
+                self.__send_update()
             else:
                 Domoticz.Debug("OnConnect Error Status: " + str(Status))
                 if(Status == 113):  # no route to host error (skip to avoid intempestive connect call)
@@ -509,14 +357,14 @@ class BasePlugin:
                 return
 
             if(self.__state_machine == 1):  # after a set command: need to ask the status
-                self.__state_machine=2
-                payload=self.__device.generate_payload('status')
+                self.__state_machine = 2
+                payload = self.__device.generate_payload('status')
                 # TODO active connection check (it should be because we just get a message)
                 # self.__connection.Send(payload)
                 return
 
             # now self.__state_machine == 2
-            self.__state_machine=0
+            self.__state_machine = 0
 
             self.__update_status(Data)
 
@@ -533,19 +381,37 @@ class BasePlugin:
         # onCommand called for Unit 2: Parameter 'Set Level' Level: 2.5
         if (Unit == self.__thermostat_device) and (Command == "Set Level"):
             # thermostat setpoint control
-            self.__domoticz_controls[self.__thermostat_device].set_setpoint(
-                Level)
+            self.__update_status('3', math.floor(2*Level))
 
         elif (Unit == self.__control_device):
             # thermostat on / off
-            self.__domoticz_controls[self.__control_device].set_command(
-                Command)
+            if Command == 'Off':
+                request_status = false
+            elif Command == 'On':
+                request_status = true
+            else:
+                Domoticz.Error("Undefined command for unit " +
+                               Unit + ": " + Command)
+                return
 
+            self.__update_status('1', request_status)
+        elif (Unit == self.__mode_device) and (Command == "Set Level"):
+            if Level == 0:
+                request_status = '0'
+            elif Level == 10:
+                request_status = '1'
+            else:
+                Domoticz.Error("Undefined command for unit " +
+                               Unit + ": " + Command)
+                return
+
+            self.__update_status('4', request_status)
         else:
-            Domoticz.Error("Undefined command: " + Command)
+            Domoticz.Error("Undefined unit (" + Unit +
+                           ") or command: " + Command)
             return
 
-        self.__command_to_execute()
+        self.__send_update()
 
     #######################################################################
     #
@@ -564,7 +430,7 @@ class BasePlugin:
     def onHeartbeat(self):
         self.__runAgain -= 1
         if(self.__runAgain == 0):
-            self.__command_to_execute()
+            self.__send_update()
 
     #######################################################################
     #
@@ -572,14 +438,13 @@ class BasePlugin:
     #
     #######################################################################
     def onStop(self):
-        self.__device=None
-        self.__domoticz_controls=None
-        self.__control_device=None
-        self.__thermostat_device=None
+        self.__device = None
+        self.__control_device = None
+        self.__thermostat_device = None
         if(self.__connection.Connected() or self.__connection.Connecting()):
             self.__connection.Disconnect()
-        self.__connection=None
-        self.__state_machine=0
+        self.__connection = None
+        self.__state_machine = 0
 
 
 ########################################################################################
@@ -588,7 +453,7 @@ class BasePlugin:
 #
 ########################################################################################
 global _plugin
-_plugin=BasePlugin()
+_plugin = BasePlugin()
 
 
 def onStart():
