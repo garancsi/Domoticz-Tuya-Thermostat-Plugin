@@ -238,27 +238,27 @@ class BasePlugin:
     #######################################################################
     def __update_status(self, Data):
 
-        start=Data.find(b'{"devId')
+        start = Data.find(b'{"devId')
 
-        if(start==-1):
+        if(start == -1):
             Domoticz.Error("Invalid payload received: " + Data)
             return
 
         result = Data[start:]
 
+        end = result.find(b'}}')
 
-        end=result.find(b'}}')
-
-        if(end==-1):
+        if(end == -1):
             Domoticz.Error("Invalid payload received: " + Data)
             return
 
-        end=end+2
+        end = end+2
         result = result[:end]
 
         try:
-            result = json.loads(Data)
+            result = json.loads(result)
         except (JSONError, KeyError) as e:
+            Domoticz.Error("Payload parse failed: " + result)
             return
 
         if result['devId'] != self.__devID:
@@ -518,14 +518,12 @@ class BasePlugin:
 
             self.__update_status(Data)
 
-
-
-
     #######################################################################
     #
     # onCommand Domoticz function
     #
     #######################################################################
+
     def onCommand(self, Unit, Command, Level, Hue):
         Domoticz.Debug("onCommand called for Unit " + str(Unit) +
                        ": Parameter '" + str(Command) + "' Level: " + str(Level))
