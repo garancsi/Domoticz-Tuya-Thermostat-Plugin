@@ -265,7 +265,7 @@ class BasePlugin:
             Domoticz.Error("Invalid payload received for " + result['devId'])
             return
 
-        Domoticz.Error("Got payload: " + type(result['dps']))
+        Domoticz.Error("Got payload: " + str(type(result['dps'])))
 
         try:
             if result['dps']['1']:
