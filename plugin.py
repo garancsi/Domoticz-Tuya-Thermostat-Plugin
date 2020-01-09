@@ -223,11 +223,10 @@ class BasePlugin:
     #
     #######################################################################
     __HB_BASE_FREQ = 2  # heartbeat frequency (val x 10 seconds)
-    __VALID_CMD = ('On', 'Off')  # list of valid command
 
     #######################################################################
     #
-    # __extract_status
+    # __update_status
     #
     # Parameter
     #    Data: a received payload from the tuya smart plug
@@ -237,31 +236,73 @@ class BasePlugin:
     #    second: dict of the dps (irrelevant if first is True )
     #
     #######################################################################
-    def __extract_status(self, Data):
-
-        start = Data.find(b'{"devId')
-
-        if(start == -1):
-            return (True, "")
-
-        # in 2 steps to deal with the case where '}}' is present before {"devId'
-        result = Data[start:]
-
-        end = result.find(b'}}')
-
-        if(end == -1):
-            return (True, "")
-
-        end = end+2
-        result = result[:end]
-        if not isinstance(result, str):
-            result = result.decode()
+    def __update_status(self, Data):
 
         try:
-            result = json.loads(result)
-            return (False, result['dps'])
+            result = json.loads(Data)
         except (JSONError, KeyError) as e:
-            return (True, "")
+            return
+
+        if result['devId'] != self.__devID:
+            Domoticz.Error("Invalid payload received for " + result['devId'])
+            return
+
+        Domoticz.Error("Got payload: " + type(result['dps']))
+
+        try:
+            if result['dps']['1']:
+                UpdateDevice(self.__control_device, 1, "Thermostat On")
+            else:
+                UpdateDevice(self.__control_device, 0, "Thermostat Off")
+        except KeyError:
+            pass
+
+        try:
+            current_temp = str(round(result['dps']['3']/2, 1))
+            # TODO check which value shoud be set
+            UpdateDevice(self.__thermostat_device, 0, current_temp)
+        except KeyError:
+            pass
+
+        # if '2' in result['dps']:
+        #     current_temp = str(round(result['dps']['2']/2, 1))
+        #     UpdateDevice(self.__mode_device, 0, "0")
+
+        try:
+            if result['dps']['4'] == "1":
+                UpdateDevice(self.__mode_device, 0, "0")
+            else:
+                UpdateDevice(self.__mode_device, 10, "10")
+        except KeyError:
+            pass
+
+        try:
+            if result['dps']['6']:
+                UpdateDevice(self.__lock_device, 0, "0")
+            else:
+                UpdateDevice(self.__lock_device, 10, "10")
+        except KeyError:
+            pass
+
+        try:
+            if result['dps']['5']:
+                UpdateDevice(self.__eco_device, 0, "0")
+            else:
+                UpdateDevice(self.__eco_device, 10, "10")
+        except KeyError:
+            pass
+
+        try:
+            current_temp = str(round(result['dps']['2']/2, 1))
+            UpdateDevice(self.__temp_device, 0, current_temp)
+        except KeyError:
+            pass
+
+        try:
+            current_temp = str(round(result['dps']['102']/2, 1))
+            UpdateDevice(self.__temp_device, 0, current_temp)
+        except KeyError:
+            pass
 
     #######################################################################
     #
@@ -283,8 +324,8 @@ class BasePlugin:
 
             if(len(dict_payload) != 0):
                 self.__state_machine = 1
-                payload = self.__device.generate_payload('set', dict_payload)
-                self.__connection.Send(payload)
+                # payload = self.__device.generate_payload('set', dict_payload)
+                # self.__connection.Send(payload)
 
             else:
                 self.__state_machine = 2
@@ -313,6 +354,7 @@ class BasePlugin:
         self.__mode_device = 3
         self.__lock_device = 4
         self.__eco_device = 5
+        self.__temp_device = 6
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
         self.__state_machine = 0
         return
@@ -353,6 +395,7 @@ class BasePlugin:
 
             Domoticz.Device(Name="Thermostat Setpoint",
                             Unit=self.__thermostat_device,
+                            Image=15,
                             Type=242,
                             Subtype=1,
                             Used=1).Create()
@@ -366,6 +409,7 @@ class BasePlugin:
 
             Domoticz.Device(Name="Thermostat Mode",
                             Unit=self.__mode_device,
+                            Image=15,
                             TypeName="Selector Switch",
                             Options=ModeOptions).Create()
 
@@ -376,6 +420,7 @@ class BasePlugin:
 
             Domoticz.Device(Name="Thermostat Lock",
                             Unit=self.__lock_device,
+                            Image=15,
                             TypeName="Selector Switch",
                             Options=LockOptions).Create()
 
@@ -386,8 +431,15 @@ class BasePlugin:
 
             Domoticz.Device(Name="Thermostat Eco",
                             Unit=self.__eco_device,
+                            Image=15,
                             TypeName="Selector Switch",
                             Options=EcoOptions).Create()
+
+            Domoticz.Device(Name="Temperature",
+                            Unit=self.__temp_device,
+                            Image=15,
+                            TypeName="Temperature",
+                            Used=1).Create()
 
         # create the pytuya object
         self.__device = pytuya.OutletDevice(
@@ -446,7 +498,7 @@ class BasePlugin:
             # now self.__state_machine == 2
             self.__state_machine = 0
 
-            (error, state) = self.__extract_status(Data)
+            (error, state) = self.__update_status(Data)
             if(error):
                 self.__command_to_execute()
                 return
