@@ -2,6 +2,21 @@
 
 A Domoticz plugin to manage Tuya based thermostat devices
 
+Tested with 16A-002HB-WiFi, 16A-002BB-WiFi.
+
+![16A-002BB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/master/assets/th-black.png)
+![16A-002HB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/master/assets/th-white.png)
+
+Got it from AliExpress [Smart Home World Store](https://www.aliexpress.com/item/32963598720.html?spm=a2g0s.9042311.0.0.27424c4dEOcJDh).
+
+App is called [Smart Life - Smart Living](https://play.google.com/store/apps/details?id=com.tuya.smartlife&hl=en).
+
+Follow instructions below to extract encryption key required for plugin configuration.
+
+This device also works fine without internet connection after initial setup is done, only the clock will not be usable.
+
+Time is synced from http Tuya cloud service.
+
 ## Prerequisites
 
 This plugin is based on the pytuya Python library. For the installation of this library,
@@ -20,7 +35,7 @@ Assuming that domoticz directory is installed in your home directory.
 
 ```bash
 cd ~/domoticz/plugins
-git clone https://github.com/tixi/Domoticz-Tuya-Thermostat-Plugin
+git clone https://github.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin
 cd Domoticz-Tuya-Thermostat-Plugin
 git clone https://github.com/clach04/python-tuya.git
 ln -s ~/domoticz/plugins/Domoticz-Tuya-Thermostat-Plugin/python-tuya/pytuya pytuya
