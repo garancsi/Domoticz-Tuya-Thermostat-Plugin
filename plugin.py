@@ -257,7 +257,7 @@ class BasePlugin:
 
         try:
             result = json.loads(jsonstr)
-            Domoticz.Debug("Loaded: " + str(result['dps'])
+            Domoticz.Debug("Loaded: " + str(result['dps']))
         except (JSONError, KeyError) as e:
             Domoticz.Error("Payload parse failed: " + jsonstr)
             return
