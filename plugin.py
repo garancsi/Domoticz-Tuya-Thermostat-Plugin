@@ -397,7 +397,8 @@ class BasePlugin:
 
         # onCommand called for Unit 2: Parameter 'Set Level' Level: 2.5
         if (Unit == self.__thermostat_device) and (Command == "Set Level"):
-            Domoticz.Debug("onCommand current thermo: "+ str(Devices[__thermostat_device]))
+            Domoticz.Debug("onCommand current thermo: " +
+                           str(Devices[self.__thermostat_device]))
             # thermostat setpoint control
             self.__send_update('2', math.floor(2*Level))
 
