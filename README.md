@@ -7,9 +7,9 @@ Tested with 16A-002HB-WiFi, 16A-002BB-WiFi.
 ![16A-002BB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/master/assets/th-black.png)
 ![16A-002HB-WiFi](https://raw.githubusercontent.com/iasmanis/Domoticz-Tuya-Thermostat-Plugin/master/assets/th-white.png)
 
-Got it from AliExpress [`https://www.aliexpress.com/item/32963598720.html?spm=a2g0s.9042311.0.0.27424c4dEOcJDh`](Smart Home World Store).
+Got it from AliExpress [Smart Home World Store](https://www.aliexpress.com/item/32963598720.html?spm=a2g0s.9042311.0.0.27424c4dEOcJDh).
 
-App is called  [`https://play.google.com/store/apps/details?id=com.tuya.smartlife&hl=en`](Smart Life - Smart Living).
+App is called [Smart Life - Smart Living](https://play.google.com/store/apps/details?id=com.tuya.smartlife&hl=en).
 
 Follow instructions below to extract encryption key required for plugin configuration.
 
