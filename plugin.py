@@ -139,15 +139,15 @@ class BasePlugin:
 
         try:
             if result['dps']['4'] == "1":
-                UpdateDevice(self.__mode_device, 0, "0")
-            else:
                 UpdateDevice(self.__mode_device, 10, "10")
+            else:
+                UpdateDevice(self.__mode_device, 20, "20")
         except KeyError:
             pass
 
         try:
             if result['dps']['6']:
-                UpdateDevice(self.__lock_device, 0, "0")
+                UpdateDevice(self.__lock_device, 20, "20")
             else:
                 UpdateDevice(self.__lock_device, 10, "10")
         except KeyError:
@@ -155,7 +155,7 @@ class BasePlugin:
 
         try:
             if result['dps']['5']:
-                UpdateDevice(self.__eco_device, 0, "0")
+                UpdateDevice(self.__eco_device, 20, "20")
             else:
                 UpdateDevice(self.__eco_device, 10, "10")
         except KeyError:
@@ -401,16 +401,44 @@ class BasePlugin:
 
             self.__send_update('1', request_status)
         elif (Unit == self.__mode_device) and (Command == "Set Level"):
-            if Level == 0:
-                request_status = '0'
-            elif Level == 10:
+            if Level == 10:
+                # manual mode
                 request_status = '1'
+            elif Level == 20:
+                # device built in scheduler
+                request_status = '0'
             else:
                 Domoticz.Error("Undefined command for unit " +
                                Unit + ": " + Command)
                 return
 
             self.__send_update('4', request_status)
+        elif (Unit == self.__eco_device) and (Command == "Set Level"):
+            if Level == 10:
+                # normal mode
+                request_status = false
+            elif Level == 20:
+                # eco mode
+                request_status = true
+            else:
+                Domoticz.Error("Undefined command for unit " +
+                               Unit + ": " + Command)
+                return
+
+            self.__send_update('5', request_status)
+        elif (Unit == self.__lock_device) and (Command == "Set Level"):
+            if Level == 10:
+                # unlocked
+                request_status = false
+            elif Level == 20:
+                # locked
+                request_status = true
+            else:
+                Domoticz.Error("Undefined command for unit " +
+                               Unit + ": " + Command)
+                return
+
+            self.__send_update('6', request_status)
         else:
             Domoticz.Error("Undefined unit (" + str(Unit) +
                            ") or command: '" + str(Command) + "' Level: " + str(Level))
