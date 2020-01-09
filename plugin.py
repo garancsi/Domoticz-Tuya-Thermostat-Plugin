@@ -244,28 +244,34 @@ class BasePlugin:
             Domoticz.Error("Invalid payload received: " + Data)
             return
 
-        result = Data[start:]
+        jsonstr = Data[start:]
 
-        end = result.find(b'}}')
+        end = jsonstr.find(b'}}')
 
         if(end == -1):
             Domoticz.Error("Invalid payload received: " + Data)
             return
 
         end = end+2
-        result = result[:end]
+        jsonstr = jsonstr[:end]
 
         try:
-            result = json.loads(result)
+            result = json.loads(jsonstr)
         except (JSONError, KeyError) as e:
-            Domoticz.Error("Payload parse failed: " + result)
+            Domoticz.Error("Payload parse failed: " + jsonstr)
             return
 
         if result['devId'] != self.__devID:
             Domoticz.Error("Invalid payload received for " + result['devId'])
             return
 
-        Domoticz.Error("Got payload: " + str(type(result['dps'])))
+        try:
+            if result['dps'] is dict:
+                Domoticz.Error("Invalid dps block: " + jsonstr
+                return
+        except:
+            Domoticz.Error("Invalid payload received: " + jsonstr
+            return
 
         try:
             if result['dps']['1']:
@@ -281,10 +287,6 @@ class BasePlugin:
             UpdateDevice(self.__thermostat_device, 0, current_temp)
         except KeyError:
             pass
-
-        # if '2' in result['dps']:
-        #     current_temp = str(round(result['dps']['2']/2, 1))
-        #     UpdateDevice(self.__mode_device, 0, "0")
 
         try:
             if result['dps']['4'] == "1":
