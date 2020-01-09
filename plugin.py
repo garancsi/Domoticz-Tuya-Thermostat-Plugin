@@ -257,7 +257,7 @@ class BasePlugin:
 
         try:
             result = json.loads(jsonstr)
-            Domoticz.Debug("Loaded: " + str(result)
+            Domoticz.Debug("Loaded: " + str(result['dps'])
         except (JSONError, KeyError) as e:
             Domoticz.Error("Payload parse failed: " + jsonstr)
             return
@@ -273,9 +273,9 @@ class BasePlugin:
 
         try:
             if result['dps']['1']:
-                UpdateDevice(self.__control_device, 1, "Thermostat On")
+                UpdateDevice(self.__control_device, 1, "On")
             else:
-                UpdateDevice(self.__control_device, 0, "Thermostat Off")
+                UpdateDevice(self.__control_device, 0, "Off")
         except KeyError:
             pass
 
@@ -310,12 +310,14 @@ class BasePlugin:
         except KeyError:
             pass
 
+        # builtin sensor reading
         try:
             current_temp=str(round(result['dps']['2']/2, 1))
             UpdateDevice(self.__temp_device, 0, current_temp)
         except KeyError:
             pass
 
+        # External sensor present
         try:
             current_temp=str(round(result['dps']['102']/2, 1))
             UpdateDevice(self.__temp_device, 0, current_temp)
