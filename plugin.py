@@ -276,7 +276,7 @@ class BasePlugin:
 
             Domoticz.Log("Thermostat Setpoint created.")
 
-            ModeOptions = {"LevelActions": "|",
+            ModeOptions = {"LevelActions": "||",
                            "LevelNames": "Manual|Schedule",
                            "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
@@ -287,8 +287,8 @@ class BasePlugin:
                             TypeName="Selector Switch",
                             Options=ModeOptions).Create()
 
-            LockOptions = {"LevelActions": "|",
-                           "LevelNames": "Manual|Schedule",
+            LockOptions = {"LevelActions": "||",
+                           "LevelNames": "Unlocked|Locked",
                            "LevelOffHidden": "true",
                            "SelectorStyle": "0"}
 
@@ -298,8 +298,8 @@ class BasePlugin:
                             TypeName="Selector Switch",
                             Options=LockOptions).Create()
 
-            EcoOptions = {"LevelActions": "|",
-                          "LevelNames": "Eco|Normal",
+            EcoOptions = {"LevelActions": "||",
+                          "LevelNames": "Normal|Eco",
                           "LevelOffHidden": "true",
                           "SelectorStyle": "0"}
 
