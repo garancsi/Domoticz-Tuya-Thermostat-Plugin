@@ -2,6 +2,10 @@
 
 A Domoticz plugin to manage Tuya based thermostat devices
 
+
+https://www.aliexpress.com/item/32963598720.html?spm=a2g0s.9042311.0.0.27424c4dEOcJDh
+
+
 ## Prerequisites
 
 This plugin is based on the pytuya Python library. For the installation of this library,
