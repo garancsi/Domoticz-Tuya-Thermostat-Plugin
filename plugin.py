@@ -177,32 +177,38 @@ class BasePlugin:
 
     #######################################################################
     #
+    # __request_status
+    #    request status from tuya device
+    #
+    #
+    #######################################################################
+
+    def __request_status(self):
+
+        self.__runAgain = self.__HB_BASE_FREQ
+
+        if(self.__connection.Connected()):
+            self.__state_machine = 2
+            payload = self.__device.generate_payload('status')
+            self.__connection.Send(payload)
+
+        else:
+            if(not self.__connection.Connecting()):
+                self.__connection.Connect()
+
+    #######################################################################
+    #
     # __send_update
-    #    send a command (set or status) to the tuya device
+    #    send a command to the tuya device
     #
     #
     #######################################################################
     def __send_update(self, dps, value):
 
-        self.__runAgain = self.__HB_BASE_FREQ
-
         if(self.__connection.Connected()):
-
-            dict_payload = {dps: value}
-
-            if(len(dict_payload) != 0):
-                self.__state_machine = 1
-                payload = self.__device.generate_payload('set', dict_payload)
-                self.__connection.Send(payload)
-
-            else:
-                self.__state_machine = 2
-                payload = self.__device.generate_payload('status')
-                self.__connection.Send(payload)
-
-        else:
-            if(not self.__connection.Connecting()):
-                self.__connection.Connect()
+            self.__state_machine = 1
+            payload = self.__device.generate_payload('set', dict_payload)
+            self.__connection.Send(payload)
 
     #######################################################################
     #
@@ -331,7 +337,8 @@ class BasePlugin:
             if (Status == 0):
                 Domoticz.Debug("Connected successfully to: " +
                                Connection.Address+":"+Connection.Port)
-                self.__send_update()
+
+                self.__request_status()
             else:
                 Domoticz.Debug("OnConnect Error Status: " + str(Status))
                 if(Status == 113):  # no route to host error (skip to avoid intempestive connect call)
@@ -381,7 +388,7 @@ class BasePlugin:
         # onCommand called for Unit 2: Parameter 'Set Level' Level: 2.5
         if (Unit == self.__thermostat_device) and (Command == "Set Level"):
             # thermostat setpoint control
-            self.__update_status('3', math.floor(2*Level))
+            self.__send_update('3', math.floor(2*Level))
 
         elif (Unit == self.__control_device):
             # thermostat on / off
@@ -394,7 +401,7 @@ class BasePlugin:
                                Unit + ": " + Command)
                 return
 
-            self.__update_status('1', request_status)
+            self.__send_update('1', request_status)
         elif (Unit == self.__mode_device) and (Command == "Set Level"):
             if Level == 0:
                 request_status = '0'
@@ -405,13 +412,13 @@ class BasePlugin:
                                Unit + ": " + Command)
                 return
 
-            self.__update_status('4', request_status)
+            self.__send_update('4', request_status)
         else:
             Domoticz.Error("Undefined unit (" + Unit +
                            ") or command: " + Command)
             return
 
-        self.__send_update()
+        self.__request_status()
 
     #######################################################################
     #
@@ -430,7 +437,7 @@ class BasePlugin:
     def onHeartbeat(self):
         self.__runAgain -= 1
         if(self.__runAgain == 0):
-            self.__send_update()
+            self.__request_status()
 
     #######################################################################
     #
