@@ -257,6 +257,7 @@ class BasePlugin:
 
         try:
             result = json.loads(jsonstr)
+            Domoticz.Debug("Loaded: " + str(result)
         except (JSONError, KeyError) as e:
             Domoticz.Error("Payload parse failed: " + jsonstr)
             return
@@ -265,12 +266,9 @@ class BasePlugin:
             Domoticz.Error("Invalid payload received for " + result['devId'])
             return
 
-        try:
-            if (type(result['dps']) is dict) == False:
-                Domoticz.Error("Invalid dps block: " + jsonstr
-                return
-        except:
-            Domoticz.Error("Invalid payload received: " + jsonstr
+
+        if ((type(result['dps']) is dict) == False):
+            Domoticz.Error("Invalid dps block: " + jsonstr
             return
 
         try:
