@@ -93,7 +93,9 @@ class BasePlugin:
         start = Data.find(b'{"devId')
 
         if(start == -1):
-            Domoticz.Error("Invalid payload received: " + Data)
+            # Domoticz.Error("Invalid payload received: " + str(Data))
+            Domoticz.Debug("Got non dps response: " +
+                           str(Data) + ", probably set response")
             return
 
         jsonstr = Data[start:]
@@ -101,7 +103,7 @@ class BasePlugin:
         end = jsonstr.find(b'}}')
 
         if(end == -1):
-            Domoticz.Error("Invalid payload received: " + Data)
+            Domoticz.Error("Invalid payload received: " + str(Data))
             return
 
         end = end+2
@@ -208,7 +210,10 @@ class BasePlugin:
         if(self.__connection.Connected()):
             self.__state_machine = 1
             dict_payload = {str(dps): value}
+
+            Domoticz.Debug("__send_update dict: " + str(dict_payload))
             payload = self.__device.generate_payload('set', dict_payload)
+            Domoticz.Debug("__send_update payload: " + str(payload))
             self.__connection.Send(payload)
 
     #######################################################################
