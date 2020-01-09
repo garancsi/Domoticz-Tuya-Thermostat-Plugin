@@ -401,6 +401,7 @@ class BasePlugin:
                            str(Devices[self.__thermostat_device]))
             # thermostat setpoint control
             self.__send_update('2', math.floor(2*Level))
+            UpdateDevice(self.__thermostat_device, 0, str(Level))
 
         elif (Unit == self.__control_device):
             # thermostat on / off
@@ -427,6 +428,7 @@ class BasePlugin:
                 return
 
             self.__send_update('4', request_status)
+            UpdateDevice(self.__mode_device, Level, str(Level))
         elif (Unit == self.__eco_device) and (Command == "Set Level"):
             if Level == 10:
                 # normal mode
@@ -440,6 +442,7 @@ class BasePlugin:
                 return
 
             self.__send_update('5', request_status)
+            UpdateDevice(self.__eco_device, Level, str(Level))
         elif (Unit == self.__lock_device) and (Command == "Set Level"):
             if Level == 10:
                 # unlocked
@@ -453,6 +456,7 @@ class BasePlugin:
                 return
 
             self.__send_update('6', request_status)
+            UpdateDevice(self.__lock_device, Level, str(Level))
         else:
             Domoticz.Error("Undefined unit (" + str(Unit) +
                            ") or command: '" + str(Command) + "' Level: " + str(Level))
