@@ -133,7 +133,7 @@ class BasePlugin:
             pass
 
         try:
-            current_temp = str(round(result['dps']['3']/2, 1))
+            current_temp = str(round(result['dps']['2']/2, 1))
             # TODO check which value shoud be set
             UpdateDevice(self.__thermostat_device, 0, current_temp)
         except KeyError:
@@ -165,7 +165,7 @@ class BasePlugin:
 
         # builtin sensor reading
         try:
-            current_temp = str(round(result['dps']['2']/2, 1))
+            current_temp = str(round(result['dps']['3']/2, 1))
             UpdateDevice(self.__temp_device, 0, current_temp)
         except KeyError:
             pass
@@ -173,7 +173,7 @@ class BasePlugin:
         # External sensor present
         try:
             current_temp = str(round(result['dps']['102']/2, 1))
-            UpdateDevice(self.__temp_device, 0, current_temp)
+            UpdateDevice(self.__external_temp_device, 0, current_temp)
         except KeyError:
             pass
 
@@ -235,6 +235,7 @@ class BasePlugin:
         self.__lock_device = 4
         self.__eco_device = 5
         self.__temp_device = 6
+        self.__external_temp_device = 7
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
         self.__state_machine = 0
         return
@@ -323,6 +324,12 @@ class BasePlugin:
                             Image=15,
                             TypeName="Temperature",
                             Used=1).Create()
+
+            Domoticz.Device(Name="Floor Temperature",
+                            Unit=self.__external_temp_device,
+                            Image=15,
+                            TypeName="Temperature",
+                            Used=0).Create()
 
         # create the pytuya object
         self.__device = pytuya.OutletDevice(
