@@ -32,7 +32,7 @@ import pytuya
 import socket  # needed for socket.timeout exception
 
 
-if(len(sys.argv) != 3):
+if(len(sys.argv) != 5):
     print("usage: " + sys.argv[0] + " <IP> <DevID> <localkey> <3.3version>")
     exit(1)
 
