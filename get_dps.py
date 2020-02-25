@@ -33,15 +33,17 @@ import socket  # needed for socket.timeout exception
 
 
 if(len(sys.argv) != 3):
-    print("usage: " + sys.argv[0] + " <IP> <DevID>")
+    print("usage: " + sys.argv[0] + " <IP> <DevID> <localkey> <3.3version>")
     exit(1)
 
 ip = sys.argv[1]
 devid = sys.argv[2]
+localKey = sys.argv[3]
 
-device = pytuya.OutletDevice(devid, ip, "")
+device = pytuya.OutletDevice(devid, ip, localKey)
 
-device.version = 3.3
+if sys.argv[4] == '1':
+    device.version = 3.3
 
 data = 0  # stub for the try except
 try:
