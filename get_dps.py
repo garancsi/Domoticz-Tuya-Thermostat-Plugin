@@ -29,24 +29,26 @@
 
 import sys
 import pytuya
-import socket #needed for socket.timeout exception
+import socket  # needed for socket.timeout exception
 
 
-if(len(sys.argv)!=3):
-	print("usage: " + sys.argv[0] + " <IP> <DevID>")
-	exit(1)
+if(len(sys.argv) != 3):
+    print("usage: " + sys.argv[0] + " <IP> <DevID>")
+    exit(1)
 
-ip       = sys.argv[1]
-devid    = sys.argv[2]
+ip = sys.argv[1]
+devid = sys.argv[2]
 
-device   = pytuya.OutletDevice(devid,ip,"")
+device = pytuya.OutletDevice(devid, ip, "")
 
-data = 0 #stub for the try except
+device.version = 3.3
+
+data = 0  # stub for the try except
 try:
-	data = device.status()
-except (ConnectionResetError, socket.timeout, OSError)  as e:
-	print("A problem occur please retry...")
-	exit(1)
+    data = device.status()
+except (ConnectionResetError, socket.timeout, OSError) as e:
+    print("A problem occur please retry...")
+    exit(1)
 
 print("\nPlug State Information:")
 print(data)
@@ -54,13 +56,13 @@ print(data)
 print("\nPlug DPS List:")
 
 dps_list = ""
-first=True
+first = True
 for key in data['dps'].keys():
-	
-	if(type (data['dps'][key]) is bool):
-		if(not first):
-			dps_list += ";"
-		dps_list += str(int(key))
-		first=False
-				
+
+    if(type(data['dps'][key]) is bool):
+        if(not first):
+            dps_list += ";"
+        dps_list += str(int(key))
+        first = False
+
 print(dps_list)
