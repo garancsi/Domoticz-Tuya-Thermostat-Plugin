@@ -122,7 +122,7 @@ class BasePlugin:
             cipher = pytuya.AESCipher(self.__device.local_key)
             # Payload is in raw bytes, not base64
             jsonstr = cipher.decrypt(payload, False)
-            Domoticz.Debug('Decrypted result' + str(jsonstr))
+            Domoticz.Debug('Decrypted result: ' + str(jsonstr))
         else:
             Domoticz.Error('Unexpected status() payload=%r', payload)
 
