@@ -34,7 +34,8 @@
         <param field="Mode2" label="Local Key" width="200px" required="true"/>
         <param field="Mode3" label="Protocol version" width="75px">
             <options>
-                <option label="3.1 (plain)" value="1"/>
+                <option label="<3.1 (plain)" value="1"/>
+                <option label="3.1 (encrypted)" value="1"/>
                 <option label="3.3 (encrypted)" value="2"/>
             </options>
         </param>
@@ -96,31 +97,62 @@ class BasePlugin:
     #######################################################################
     def __update_status(self, Data):
 
-        start = Data.find(b'{"devId')
+        result = Data[20:-8]
 
-        if(start == -1):
-            # Domoticz.Error("Invalid payload received: " + str(Data))
-            Domoticz.Debug("Got non dps response: " +
-                           str(Data) + ", probably set response")
-            return
+        if self.__version_id == 0:
+            # this is the regular expected code path
+            if not isinstance(result, str):
+                result = result.decode()
+            result = json.loads(result)
+        if self.__version_id == 1:
+            # got an encrypted payload, happens occasionally
+            # expect resulting json to look similar to:: {"devId":"ID","dps":{"1":true,"2":0},"t":EPOCH_SECS,"s":3_DIGIT_NUM}
+            # NOTE dps.2 may or may not be present
+            # remove version header
+            result = result[len(pytuya.PROTOCOL_VERSION_BYTES_31):]
+            # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
+            result = result[16:]
+            cipher = pytuya.AESCipher(self.__localKey)
+            result = cipher.decrypt(result)
+            Domoticz.Debug('decrypted result=%r', result)
+            if not isinstance(result, str):
+                result = result.decode()
+            result = json.loads(result)
+        elif self.__version_id == 2:
+            cipher = pytuya.AESCipher(self.__localKey)
+            result = cipher.decrypt(result, False)
+            Domoticz.Debug('decrypted result=%r', result)
+            if not isinstance(result, str):
+                result = result.decode()
+            result = json.loads(result)
+        else:
+            Domoticz.Error('Unexpected status() payload=%r', result)
 
-        jsonstr = Data[start:]
+        # start = Data.find(b'{"devId')
 
-        end = jsonstr.find(b'}}')
+        # if(start == -1):
+        #     # Domoticz.Error("Invalid payload received: " + str(Data))
+        #     Domoticz.Debug("Got non dps response: " +
+        #                    str(Data) + ", probably set response")
+        #     return
 
-        if(end == -1):
-            Domoticz.Error("Invalid payload received: " + str(Data))
-            return
+        # jsonstr = Data[start:]
 
-        end = end+2
-        jsonstr = jsonstr[:end]
+        # end = jsonstr.find(b'}}')
 
-        try:
-            result = json.loads(jsonstr)
-            Domoticz.Debug("Loaded: " + str(result['dps']))
-        except (JSONError, KeyError) as e:
-            Domoticz.Error("Payload parse failed: " + jsonstr)
-            return
+        # if(end == -1):
+        #     Domoticz.Error("Invalid payload received: " + str(Data))
+        #     return
+
+        # end = end+2
+        # jsonstr = jsonstr[:end]
+
+        # try:
+        #     result = json.loads(jsonstr)
+        #     Domoticz.Debug("Loaded: " + str(result['dps']))
+        # except (JSONError, KeyError) as e:
+        #     Domoticz.Error("Payload parse failed: " + jsonstr)
+        #     return
 
         if result['devId'] != self.__devID:
             Domoticz.Error("Invalid payload received for " + result['devId'])
@@ -244,7 +276,7 @@ class BasePlugin:
         self.__external_temp_device = 7
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
         self.__state_machine = 0
-        self.__version_id = 1
+        self.__version_id = 0
         return
 
     #######################################################################
@@ -356,7 +388,7 @@ class BasePlugin:
 
         # start the connection
         self.__connection = Domoticz.Connection(
-            Name="Tuya:"+self.__address, Transport="TCP/IP", Address=self.__address, Port="6668")
+            Name="Tuya v"+str(self.__device.version), Transport="TCP/IP", Address=self.__address, Port="6668")
         self.__connection.Connect()
 
     #######################################################################
