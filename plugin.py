@@ -34,7 +34,7 @@
         <param field="Mode2" label="Local Key" width="200px" required="true"/>
         <param field="Mode3" label="Protocol version" width="75px">
             <options>
-                <option label="<3.1 (plain)" value="1"/>
+                <option label="<3.1 (plain)" value="0"/>
                 <option label="3.1 (encrypted)" value="1"/>
                 <option label="3.3 (encrypted)" value="2"/>
             </options>
