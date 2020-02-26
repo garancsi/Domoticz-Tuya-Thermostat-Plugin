@@ -34,9 +34,9 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-if(len(sys.argv) != 7):
+if(len(sys.argv) != 8):
     print("usage: " + sys.argv[0] +
-          " <IP> <DevID> <Local key> <DPS key> <DPS value> <DPS type>")
+          " <IP> <DevID> <Local key> <version> <DPS key> <DPS value> <DPS type>")
     print("    <DPS type>: " +
           "\n       bool - a boolean value" +
           "\n       number - a numerical value value" +
@@ -46,11 +46,12 @@ if(len(sys.argv) != 7):
 ip = sys.argv[1]
 devid = sys.argv[2]
 localkey = sys.argv[3]
-dps_key = sys.argv[4]
-dps_value = sys.argv[5]
-dps_type = sys.argv[6]
+dps_key = sys.argv[5]
+dps_value = sys.argv[6]
+dps_type = sys.argv[7]
 
 device = pytuya.OutletDevice(devid, ip, localkey)
+device.version = sys.argv[4]
 
 try:
 

@@ -32,6 +32,12 @@
         <param field="Address" label="IP address" width="200px" required="true"/>
         <param field="Mode1" label="DevID" width="200px" required="true"/>
         <param field="Mode2" label="Local Key" width="200px" required="true"/>
+        <param field="Mode3" label="Protocol version" width="75px">
+            <options>
+                <option label="3.1 (plain)" value="1"/>
+                <option label="3.3 (encrypted)" value="2"/>
+            </options>
+        </param>
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="false"   value="0" default="true"/>
@@ -238,6 +244,7 @@ class BasePlugin:
         self.__external_temp_device = 7
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
         self.__state_machine = 0
+        self.__version_id = 1
         return
 
     #######################################################################
@@ -255,6 +262,7 @@ class BasePlugin:
         self.__address = Parameters["Address"]
         self.__devID = Parameters["Mode1"]
         self.__localKey = Parameters["Mode2"]
+        self.__version_id = Parameters["Mode3"]
 
         # set the next heartbeat
         self.__runAgain = self.__HB_BASE_FREQ
@@ -335,12 +343,18 @@ class BasePlugin:
         self.__device = pytuya.OutletDevice(
             self.__devID, self.__address, self.__localKey)
 
+        if self.__version_id == 1:
+            self.__device.version = 3.1
+
+        if self.__version_id == 2:
+            self.__device.version = 3.3
+
         # state machine
         self.__state_machine = 0
 
         # start the connection
         self.__connection = Domoticz.Connection(
-            Name="Tuya", Transport="TCP/IP", Address=self.__address, Port="6668")
+            Name="Tuya:"+self.__address, Transport="TCP/IP", Address=self.__address, Port="6668")
         self.__connection.Connect()
 
     #######################################################################

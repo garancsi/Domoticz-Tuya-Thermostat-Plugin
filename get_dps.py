@@ -33,7 +33,7 @@ import socket  # needed for socket.timeout exception
 
 
 if(len(sys.argv) != 5):
-    print("usage: " + sys.argv[0] + " <IP> <DevID> <localkey> <3.3version>")
+    print("usage: " + sys.argv[0] + " <IP> <DevID> <localkey> <version>")
     exit(1)
 
 ip = sys.argv[1]
@@ -42,8 +42,7 @@ localKey = sys.argv[3]
 
 device = pytuya.OutletDevice(devid, ip, localKey)
 
-if sys.argv[4] == '1':
-    device.version = 3.3
+device.version = sys.argv[4]
 
 data = 0  # stub for the try except
 try:
@@ -52,10 +51,10 @@ except (ConnectionResetError, socket.timeout, OSError) as e:
     print("A problem occur please retry...")
     exit(1)
 
-print("\nPlug State Information:")
+print("\Device State Information:")
 print(data)
 
-print("\nPlug DPS List:")
+print("\Device DPS List:")
 
 dps_list = ""
 first = True
