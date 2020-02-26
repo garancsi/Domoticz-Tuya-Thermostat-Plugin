@@ -29,38 +29,41 @@
 
 import sys
 import pytuya
-import socket #needed for socket.timeout exception
+import socket  # needed for socket.timeout exception
 
 
-if(len(sys.argv)!=3):
-	print("usage: " + sys.argv[0] + " <IP> <DevID>")
-	exit(1)
+if(len(sys.argv) != 5):
+    print("usage: " + sys.argv[0] + " <IP> <DevID> <localkey> <version>")
+    exit(1)
 
-ip       = sys.argv[1]
-devid    = sys.argv[2]
+ip = sys.argv[1]
+devid = sys.argv[2]
+localKey = sys.argv[3]
 
-device   = pytuya.OutletDevice(devid,ip,"")
+device = pytuya.OutletDevice(devid, ip, localKey)
 
-data = 0 #stub for the try except
+device.version = sys.argv[4]
+
+data = 0  # stub for the try except
 try:
-	data = device.status()
-except (ConnectionResetError, socket.timeout, OSError)  as e:
-	print("A problem occur please retry...")
-	exit(1)
+    data = device.status()
+except (ConnectionResetError, socket.timeout, OSError) as e:
+    print("A problem occur please retry...")
+    exit(1)
 
-print("\nPlug State Information:")
+print("\Device State Information:")
 print(data)
 
-print("\nPlug DPS List:")
+print("\Device DPS List:")
 
 dps_list = ""
-first=True
+first = True
 for key in data['dps'].keys():
-	
-	if(type (data['dps'][key]) is bool):
-		if(not first):
-			dps_list += ";"
-		dps_list += str(int(key))
-		first=False
-				
+
+    if(type(data['dps'][key]) is bool):
+        if(not first):
+            dps_list += ";"
+        dps_list += str(int(key))
+        first = False
+
 print(dps_list)

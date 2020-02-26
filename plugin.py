@@ -32,6 +32,12 @@
         <param field="Address" label="IP address" width="200px" required="true"/>
         <param field="Mode1" label="DevID" width="200px" required="true"/>
         <param field="Mode2" label="Local Key" width="200px" required="true"/>
+        <param field="Mode3" label="Protocol version" width="75px">
+            <options>
+                <option label="3.1 (mixed)" value="1"/>
+                <option label="3.3 (encrypted)" value="2"/>
+            </options>
+        </param>
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="false"   value="0" default="true"/>
@@ -90,31 +96,102 @@ class BasePlugin:
     #######################################################################
     def __update_status(self, Data):
 
-        start = Data.find(b'{"devId')
+        payload = Data[20:-8]
 
-        if(start == -1):
-            # Domoticz.Error("Invalid payload received: " + str(Data))
-            Domoticz.Debug("Got non dps response: " +
-                           str(Data) + ", probably set response")
+        if len(payload) == 0:
+            Domoticz.Debug('Empty payload (probably a response to set)')
             return
 
-        jsonstr = Data[start:]
+        Domoticz.Debug('Got payload: ' + str(payload))
 
-        end = jsonstr.find(b'}}')
+        # try:
 
-        if(end == -1):
-            Domoticz.Error("Invalid payload received: " + str(Data))
-            return
+        if self.__version_id == 1:
 
-        end = end+2
-        jsonstr = jsonstr[:end]
+            if payload.startswith(b'{'):
+                # got plain text status response
+                jsonstr = payload
+
+                # sometimes thermostat send the same status payload twice (probably a bug)
+                end = jsonstr.find(b'}}')
+                if(end == -1):
+                    Domoticz.Error("Invalid payload received: " + str(Data))
+                    return
+
+                end = end+2
+                jsonstr = jsonstr[:end]
+
+            elif payload.startswith(pytuya.PROTOCOL_VERSION_BYTES_31):
+                # got an encrypted payload, happens occasionally
+                # expect resulting json to look similar to:: {"devId":"ID","dps":{"1":true,"2":0},"t":EPOCH_SECS,"s":3_DIGIT_NUM}
+                # NOTE dps.2 may or may not be present
+                # remove version header
+                payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_31):]
+                # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
+                payload = payload[16:]
+                cipher = pytuya.AESCipher(self.__device.local_key)
+                # Payload is in base64
+                jsonstr = cipher.decrypt(payload)
+                Domoticz.Debug('Decrypted result: ' + str(jsonstr))
+            else:
+                Domoticz.Error(
+                    "Unknown payload, please try encrypted v3.3 protocol")
+                return
+
+        elif self.__version_id == 2:
+
+            if payload.startswith(pytuya.PROTOCOL_VERSION_BYTES_33):
+                # For 3.3 version protocol after setting dps there can be
+                # a message that cannot be decrypted
+                # Always starts with 33 2e 33 00 00 00 00 00 00
+                payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_33):]
+                # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
+                payload = payload[16:]
+                # the approach from v3.1 does not work
+                # discard this payload for now
+                return
+
+            cipher = pytuya.AESCipher(self.__device.local_key)
+            # Payload is in raw bytes, not base64
+            jsonstr = cipher.decrypt(payload, False)
+            Domoticz.Debug('Decrypted result: ' + str(jsonstr))
+        else:
+            Domoticz.Error('Unexpected status() payload=' + str(payload))
 
         try:
+            if not isinstance(jsonstr, str):
+                jsonstr = jsonstr.decode()
             result = json.loads(jsonstr)
             Domoticz.Debug("Loaded: " + str(result['dps']))
         except (JSONError, KeyError) as e:
-            Domoticz.Error("Payload parse failed: " + jsonstr)
+            Domoticz.Error("Payload parse failed: " + str(jsonstr))
             return
+
+        # start = Data.find(b'{"devId')
+
+        # if(start == -1):
+        #     # Domoticz.Error("Invalid payload received: " + str(Data))
+        #     Domoticz.Debug("Got non dps response: " +
+        #                    str(Data) + ", probably set response")
+        #     return
+
+        # jsonstr = Data[start:]
+
+        # end = jsonstr.find(b'}}')
+
+        # if(end == -1):
+        #     Domoticz.Error("Invalid payload received: " + str(Data))
+        #     return
+
+        # end = end+2
+        # jsonstr = jsonstr[:end]
+
+        # try:
+        #     result = json.loads(jsonstr)
+        #     Domoticz.Debug("Loaded: " + str(result['dps']))
+        # except (JSONError, KeyError) as e:
+        #     Domoticz.Error("Payload parse failed: " + jsonstr)
+        #     return
 
         if result['devId'] != self.__devID:
             Domoticz.Error("Invalid payload received for " + result['devId'])
@@ -238,6 +315,7 @@ class BasePlugin:
         self.__external_temp_device = 7
         # state_machine: 0 -> no waiting msg ; 1 -> set command sent ; 2 -> status command sent
         self.__state_machine = 0
+        self.__version_id = 0
         return
 
     #######################################################################
@@ -255,6 +333,7 @@ class BasePlugin:
         self.__address = Parameters["Address"]
         self.__devID = Parameters["Mode1"]
         self.__localKey = Parameters["Mode2"]
+        self.__version_id = int(Parameters["Mode3"])
 
         # set the next heartbeat
         self.__runAgain = self.__HB_BASE_FREQ
@@ -335,12 +414,20 @@ class BasePlugin:
         self.__device = pytuya.OutletDevice(
             self.__devID, self.__address, self.__localKey)
 
+        if self.__version_id == 1:
+            self.__device.version = 3.1
+            Domoticz.Debug("Initialized v3.1 connection")
+
+        if self.__version_id == 2:
+            self.__device.version = 3.3
+            Domoticz.Debug("Initialized v3.3 connection")
+
         # state machine
         self.__state_machine = 0
 
         # start the connection
         self.__connection = Domoticz.Connection(
-            Name="Tuya", Transport="TCP/IP", Address=self.__address, Port="6668")
+            Name="Tuya v"+str(self.__device.version), Transport="TCP/IP", Address=self.__address, Port="6668")
         self.__connection.Connect()
 
     #######################################################################
