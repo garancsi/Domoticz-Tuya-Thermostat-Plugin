@@ -119,7 +119,7 @@ class BasePlugin:
             jsonstr = cipher.decrypt(payload, False)
             Domoticz.Debug('decrypted result=%r', jsonstr)
         else:
-            Domoticz.Error('Unexpected status() payload=%r', result)
+            Domoticz.Error('Unexpected status() payload=%r', payload)
 
         try:
             if not isinstance(jsonstr, str):
@@ -296,7 +296,7 @@ class BasePlugin:
         self.__address = Parameters["Address"]
         self.__devID = Parameters["Mode1"]
         self.__localKey = Parameters["Mode2"]
-        self.__version_id = Parameters["Mode3"]
+        self.__version_id = int(Parameters["Mode3"])
 
         # set the next heartbeat
         self.__runAgain = self.__HB_BASE_FREQ
