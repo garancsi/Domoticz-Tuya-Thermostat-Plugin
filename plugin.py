@@ -377,11 +377,11 @@ class BasePlugin:
         self.__device = pytuya.OutletDevice(
             self.__devID, self.__address, self.__localKey)
 
-        if self.__version_id == "1":
+        if self.__version_id == 1:
             self.__device.version = 3.1
             Domoticz.Debug("Initialized v3.1 connection")
 
-        if self.__version_id == "2":
+        if self.__version_id == 2:
             self.__device.version = 3.3
             Domoticz.Debug("Initialized v3.3 connection")
 
