@@ -147,13 +147,16 @@ class BasePlugin:
                 payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_33):]
                 # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
                 payload = payload[16:]
+                # the approach from v3.1 does not work
+                # discard this payload for now
+                return
 
             cipher = pytuya.AESCipher(self.__device.local_key)
             # Payload is in raw bytes, not base64
             jsonstr = cipher.decrypt(payload, False)
             Domoticz.Debug('Decrypted result: ' + str(jsonstr))
         else:
-            Domoticz.Error('Unexpected status() payload=%r', payload)
+            Domoticz.Error('Unexpected status() payload=' + str(payload))
 
         try:
             if not isinstance(jsonstr, str):
@@ -161,7 +164,7 @@ class BasePlugin:
             result = json.loads(jsonstr)
             Domoticz.Debug("Loaded: " + str(result['dps']))
         except (JSONError, KeyError) as e:
-            Domoticz.Error("Payload parse failed: " + payload)
+            Domoticz.Error("Payload parse failed: " + str(jsonstr))
             return
 
         # start = Data.find(b'{"devId')
