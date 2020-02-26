@@ -99,6 +99,10 @@ class BasePlugin:
 
         payload = Data[20:-8]
 
+        if len(payload) == 0:
+            Domoticz.Debug('Empty payload (probably a response to set)')
+            return
+
         Domoticz.Debug('Got payload: ' + str(payload))
 
         # try:
