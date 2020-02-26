@@ -99,7 +99,10 @@ class BasePlugin:
 
         payload = Data[20:-8]
 
+        Domoticz.Debug('payload=%r', payload)
+
         # try:
+
         if self.__version_id == 0:
             # this is the regular expected code path
             jsonstr = payload
@@ -112,10 +115,12 @@ class BasePlugin:
             # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
             payload = payload[16:]
             cipher = pytuya.AESCipher(self.__localKey)
+            # Payload is in base64
             jsonstr = cipher.decrypt(payload)
             Domoticz.Debug('decrypted result=%r', jsonstr)
         elif self.__version_id == 2:
             cipher = pytuya.AESCipher(self.__localKey)
+            # Payload is in raw bytes, not base64
             jsonstr = cipher.decrypt(payload, False)
             Domoticz.Debug('decrypted result=%r', jsonstr)
         else:
