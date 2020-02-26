@@ -97,36 +97,43 @@ class BasePlugin:
     #######################################################################
     def __update_status(self, Data):
 
-        result = Data[20:-8]
+        payload = Data[20:-8]
 
-        if self.__version_id == 0:
-            # this is the regular expected code path
-            if not isinstance(result, str):
-                result = result.decode()
-            result = json.loads(result)
-        if self.__version_id == 1:
-            # got an encrypted payload, happens occasionally
-            # expect resulting json to look similar to:: {"devId":"ID","dps":{"1":true,"2":0},"t":EPOCH_SECS,"s":3_DIGIT_NUM}
-            # NOTE dps.2 may or may not be present
-            # remove version header
-            result = result[len(pytuya.PROTOCOL_VERSION_BYTES_31):]
-            # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
-            result = result[16:]
-            cipher = pytuya.AESCipher(self.__localKey)
-            result = cipher.decrypt(result)
-            Domoticz.Debug('decrypted result=%r', result)
-            if not isinstance(result, str):
-                result = result.decode()
-            result = json.loads(result)
-        elif self.__version_id == 2:
-            cipher = pytuya.AESCipher(self.__localKey)
-            result = cipher.decrypt(result, False)
-            Domoticz.Debug('decrypted result=%r', result)
-            if not isinstance(result, str):
-                result = result.decode()
-            result = json.loads(result)
-        else:
-            Domoticz.Error('Unexpected status() payload=%r', result)
+        try:
+            if self.__version_id == 0:
+                # this is the regular expected code path
+                jsonstr = payload
+                if not isinstance(jsonstr, str):
+                    jsonstr = jsonstr.decode()
+                result = json.loads(jsonstr)
+            if self.__version_id == 1:
+                # got an encrypted payload, happens occasionally
+                # expect resulting json to look similar to:: {"devId":"ID","dps":{"1":true,"2":0},"t":EPOCH_SECS,"s":3_DIGIT_NUM}
+                # NOTE dps.2 may or may not be present
+                # remove version header
+                payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_31):]
+                # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
+                payload = payload[16:]
+                cipher = pytuya.AESCipher(self.__localKey)
+                jsonstr = cipher.decrypt(payload)
+                Domoticz.Debug('decrypted result=%r', jsonstr)
+                if not isinstance(jsonstr, str):
+                    jsonstr = jsonstr.decode()
+                result = json.loads(jsonstr)
+            elif self.__version_id == 2:
+                cipher = pytuya.AESCipher(self.__localKey)
+                jsonstr = cipher.decrypt(payload, False)
+                Domoticz.Debug('decrypted result=%r', jsonstr)
+                if not isinstance(jsonstr, str):
+                    jsonstr = jsonstr.decode()
+                result = json.loads(jsonstr)
+            else:
+                Domoticz.Error('Unexpected status() payload=%r', result)
+
+        except (JSONError, KeyError) as e:
+            Domoticz.Debug('Decrypt exception: '+ str(e))
+            Domoticz.Error("Payload parse failed: " + payload)
+            return
 
         # start = Data.find(b'{"devId')
 
