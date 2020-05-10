@@ -104,59 +104,66 @@ class BasePlugin:
 
         Domoticz.Debug('Got payload: ' + str(payload))
 
-        # try:
+        try:
 
-        if self.__version_id == 1:
+            if self.__version_id == 1:
 
-            if payload.startswith(b'{'):
-                # got plain text status response
-                jsonstr = payload
+                if payload.startswith(b'{'):
+                    # got plain text status response
+                    jsonstr = payload
 
-                # sometimes thermostat send the same status payload twice (probably a bug)
-                end = jsonstr.find(b'}}')
-                if(end == -1):
-                    Domoticz.Error("Invalid payload received: " + str(Data))
+                    # sometimes thermostat send the same status payload twice (probably a bug)
+                    end = jsonstr.find(b'}}')
+                    if(end == -1):
+                        Domoticz.Error(
+                            "Invalid payload received: " + str(Data))
+                        return
+
+                    end = end+2
+                    jsonstr = jsonstr[:end]
+
+                elif payload.startswith(pytuya.PROTOCOL_VERSION_BYTES_31):
+                    # got an encrypted payload, happens occasionally
+                    # expect resulting json to look similar to:: {"devId":"ID","dps":{"1":true,"2":0},"t":EPOCH_SECS,"s":3_DIGIT_NUM}
+                    # NOTE dps.2 may or may not be present
+                    # remove version header
+                    payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_31):]
+                    # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
+                    payload = payload[16:]
+                    cipher = pytuya.AESCipher(self.__device.local_key)
+                    # Payload is in base64
+                    jsonstr = cipher.decrypt(payload)
+                    Domoticz.Debug('Decrypted result: ' + str(jsonstr))
+                else:
+                    Domoticz.Error(
+                        "Unknown payload, please try encrypted v3.3 protocol")
                     return
 
-                end = end+2
-                jsonstr = jsonstr[:end]
+            elif self.__version_id == 2:
 
-            elif payload.startswith(pytuya.PROTOCOL_VERSION_BYTES_31):
-                # got an encrypted payload, happens occasionally
-                # expect resulting json to look similar to:: {"devId":"ID","dps":{"1":true,"2":0},"t":EPOCH_SECS,"s":3_DIGIT_NUM}
-                # NOTE dps.2 may or may not be present
-                # remove version header
-                payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_31):]
-                # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
-                payload = payload[16:]
+                if payload.startswith(pytuya.PROTOCOL_VERSION_BYTES_33):
+                    # For 3.3 version protocol after setting dps there can be
+                    # a message that cannot be decrypted
+                    # Always starts with 33 2e 33 00 00 00 00 00 00
+                    payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_33):]
+                    # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
+                    payload = payload[16:]
+                    # the approach from v3.1 does not work
+                    # discard this payload for now
+                    return
+
                 cipher = pytuya.AESCipher(self.__device.local_key)
-                # Payload is in base64
-                jsonstr = cipher.decrypt(payload)
+                # Payload is in raw bytes, not base64
+                jsonstr = cipher.decrypt(payload, False)
                 Domoticz.Debug('Decrypted result: ' + str(jsonstr))
+
             else:
-                Domoticz.Error(
-                    "Unknown payload, please try encrypted v3.3 protocol")
-                return
+                Domoticz.Error('Unexpected status() payload=' + str(payload))
 
-        elif self.__version_id == 2:
-
-            if payload.startswith(pytuya.PROTOCOL_VERSION_BYTES_33):
-                # For 3.3 version protocol after setting dps there can be
-                # a message that cannot be decrypted
-                # Always starts with 33 2e 33 00 00 00 00 00 00
-                payload = payload[len(pytuya.PROTOCOL_VERSION_BYTES_33):]
-                # remove (what I'm guessing, but not confirmed is) 16-bytes of MD5 hexdigest of payload
-                payload = payload[16:]
-                # the approach from v3.1 does not work
-                # discard this payload for now
-                return
-
-            cipher = pytuya.AESCipher(self.__device.local_key)
-            # Payload is in raw bytes, not base64
-            jsonstr = cipher.decrypt(payload, False)
-            Domoticz.Debug('Decrypted result: ' + str(jsonstr))
-        else:
-            Domoticz.Error('Unexpected status() payload=' + str(payload))
+        except (ValueError) as e:
+            Domoticz.Error(
+                'Payload decryption failed, please check protocol version and local key value')
+            return
 
         try:
             if not isinstance(jsonstr, str):
