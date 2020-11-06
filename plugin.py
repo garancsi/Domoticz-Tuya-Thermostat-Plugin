@@ -311,7 +311,7 @@ class BasePlugin:
         self.__device = None  # pytuya object of the Thermostat
         self.__runAgain = self.__HB_BASE_FREQ  # heartbeat frequency
         self.__connection = None  # connection to the tuya plug
-        self.__multiplier = 1.0 #data multiplier for cheep chinese thermostats
+        self.__multiplier = 1.0 #data multiplier for Thermostat resolution
         # domotics control ID (On/Off switch)
         self.__control_device = 1
         self.__thermostat_device = 2
