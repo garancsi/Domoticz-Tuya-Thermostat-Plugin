@@ -38,6 +38,12 @@
                 <option label="3.3 (encrypted)" value="2"/>
             </options>
         </param>
+        <param field="Mode4" label="Resolution" width="75px">
+            <options>
+                <option label="0.5 degree" value="1.0"/>
+                <option label="0.1 degree" value="0.2"/>
+            </options>
+        </param>
         <param field="Mode6" label="Debug" width="75px">
             <options>
                 <option label="false"   value="0" default="true"/>
@@ -210,7 +216,7 @@ class BasePlugin:
             pass
 
         try:
-            current_temp = str(round(result['dps']['2']/2, 1))
+            current_temp = str(round(result['dps']['2']/2 * self.__multiplier), 1))
             # TODO check which value shoud be set
             UpdateDevice(self.__thermostat_device, 0, current_temp)
         except KeyError:
@@ -242,14 +248,14 @@ class BasePlugin:
 
         # builtin sensor reading
         try:
-            current_temp = str(round(result['dps']['3']/2, 1))
+            current_temp = str(round(result['dps']['3']/2 * self.__multiplier, 1))
             UpdateDevice(self.__temp_device, 0, current_temp)
         except KeyError:
             pass
 
         # External sensor present
         try:
-            current_temp = str(round(result['dps']['102']/2, 1))
+            current_temp = str(round(result['dps']['102']/2 * self.__multiplier, 1))
             UpdateDevice(self.__external_temp_device, 0, current_temp)
         except KeyError:
             pass
@@ -305,6 +311,7 @@ class BasePlugin:
         self.__device = None  # pytuya object of the Thermostat
         self.__runAgain = self.__HB_BASE_FREQ  # heartbeat frequency
         self.__connection = None  # connection to the tuya plug
+        self.__multiplier = 1.0 #data multiplier for cheep chinese thermostats
         # domotics control ID (On/Off switch)
         self.__control_device = 1
         self.__thermostat_device = 2
@@ -334,6 +341,7 @@ class BasePlugin:
         self.__devID = Parameters["Mode1"]
         self.__localKey = Parameters["Mode2"]
         self.__version_id = int(Parameters["Mode3"])
+        self.__multiplier = float(Parameters["Mode4"])
 
         # set the next heartbeat
         self.__runAgain = self.__HB_BASE_FREQ
@@ -487,7 +495,7 @@ class BasePlugin:
             Domoticz.Debug("onCommand current thermo: " +
                            str(Devices[self.__thermostat_device]))
             # thermostat setpoint control
-            self.__send_update('2', math.floor(2*Level))
+            self.__send_update('2', math.floor(2*Level/self.__multiplier))
             # UpdateDevice(self.__thermostat_device, 0, str(Level))
 
         elif (Unit == self.__control_device):
