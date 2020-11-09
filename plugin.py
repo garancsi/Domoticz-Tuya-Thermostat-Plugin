@@ -216,7 +216,7 @@ class BasePlugin:
             pass
 
         try:
-            current_temp = str(round(result['dps']['2']/2 * self.__multiplier), 1))
+            current_temp = str(round(result['dps']['2']/2 * self.__multiplier, 1))
             # TODO check which value shoud be set
             UpdateDevice(self.__thermostat_device, 0, current_temp)
         except KeyError:
